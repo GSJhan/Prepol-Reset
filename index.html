@@ -3,332 +3,824 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="PREPOL RESET - Juego Cívico Educativo tipo Duolingo">
-    <meta name="theme-color" content="#1e1b4b">
-    <title>PREPOL RESET - Juego Cívico Educativo</title>
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50' y='70' font-size='80' text-anchor='middle'>🐕</text></svg>">
+    <title>PREPOL RESET - Juego Cívico</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+        /* NAVBAR */
+        nav {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon { font-size: 32px; }
+
+        nav button {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        nav button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+
+        /* HERO */
+        .hero {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            padding: 80px 0;
+        }
+
+        .hero-text h1 {
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .hero-text p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border: none;
+            color: white;
+            padding: 16px 40px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 40px rgba(245, 87, 108, 0.4);
+        }
+
+        .hero-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.2);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .card:hover {
+            background: rgba(255,255,255,0.15);
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .card-icon { font-size: 3rem; margin-bottom: 15px; }
+        .card-title { font-size: 1.2rem; font-weight: 700; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        /* FEATURES */
+        .features {
+            padding: 80px 0;
+            text-align: center;
+        }
+
+        .features h2 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-bottom: 50px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-item {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 40px 30px;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.3s;
+        }
+
+        .feature-item:hover {
+            background: rgba(255,255,255,0.15);
+            transform: translateY(-8px);
+        }
+
+        .feature-icon { font-size: 3rem; margin-bottom: 15px; }
+        .feature-item h3 { font-size: 1.3rem; margin-bottom: 10px; }
+        .feature-item p { opacity: 0.9; line-height: 1.6; }
+
+        /* STATS */
+        .stats {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 60px 40px;
+            margin: 80px 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 40px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label { opacity: 0.8; font-size: 0.95rem; }
+
+        /* GAME PAGE */
+        .game-page { display: none; }
+        .game-page.active { display: block; }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 30px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 50px;
+        }
+
+        .player-info {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .player-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 1.5rem;
+        }
+
+        .stat-item { display: flex; flex-direction: column; gap: 5px; }
+        .stat-item span:first-child { opacity: 0.7; font-size: 0.9rem; }
+        .stat-item span:last-child { font-weight: 700; font-size: 1.1rem; }
+
+        .districts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .district-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 16px;
+            border: 2px solid rgba(255,255,255,0.2);
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .district-card:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: rgba(255,255,255,0.4);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .district-icon { font-size: 3rem; margin-bottom: 15px; }
+        .district-card h3 { font-size: 1.3rem; margin-bottom: 8px; }
+        .district-card p { opacity: 0.8; font-size: 0.9rem; margin-bottom: 15px; }
+
+        .levels {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .level-badge {
+            background: rgba(240, 147, 251, 0.2);
+            border: 1px solid rgba(240, 147, 251, 0.5);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .game-actions {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            padding: 40px 0;
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 12px 28px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.5);
+        }
+
+        /* QUIZ PAGE */
+        .quiz-page { display: none; }
+        .quiz-page.active { display: block; }
+
+        .quiz-header {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 8px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .question-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+        }
+
+        .question-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .options {
+            display: grid;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 16px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+            font-weight: 500;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background: rgba(255,255,255,0.15);
+            border-color: rgba(255,255,255,0.4);
+            transform: translateX(8px);
+        }
+
+        .option-btn:disabled { cursor: not-allowed; }
+        .option-btn.correct { background: rgba(76, 175, 80, 0.3); border-color: #4CAF50; color: #81C784; }
+        .option-btn.incorrect { background: rgba(244, 67, 54, 0.3); border-color: #f44336; color: #EF9A9A; }
+
+        .feedback {
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: none;
+            border-left: 4px solid;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: rgba(76, 175, 80, 0.2); border-left-color: #4CAF50; color: #81C784; }
+        .feedback.incorrect { background: rgba(244, 67, 54, 0.2); border-left-color: #f44336; color: #EF9A9A; }
+
+        .btn-next {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border: none;
+            color: white;
+            padding: 14px 32px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            display: none;
+        }
+
+        .btn-next.show { display: inline-block; }
+
+        /* LEADERBOARD */
+        .leaderboard-page { display: none; }
+        .leaderboard-page.active { display: block; }
+
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .leaderboard-table thead {
+            background: rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .leaderboard-table th {
+            padding: 20px;
+            text-align: left;
+            font-weight: 700;
+            opacity: 0.8;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .leaderboard-table tbody tr {
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s;
+        }
+
+        .leaderboard-table tbody tr:hover { background: rgba(255,255,255,0.05); }
+
+        .leaderboard-table td {
+            padding: 18px 20px;
+        }
+
+        .leaderboard-table td:first-child {
+            font-weight: 900;
+            font-size: 1.1rem;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .leaderboard-table td:nth-child(3) {
+            font-weight: 700;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .hero { grid-template-columns: 1fr; gap: 40px; padding: 40px 0; }
+            .hero-text h1 { font-size: 2.5rem; }
+            .hero-cards { grid-template-columns: 1fr; }
+            .districts-grid { grid-template-columns: 1fr; }
+            .player-info { flex-direction: column; gap: 15px; }
+            .game-actions { flex-direction: column; }
+        }
+
+        @media (max-width: 480px) {
+            .hero-text h1 { font-size: 1.8rem; }
+            .question-text { font-size: 1.2rem; }
+            .option-btn { padding: 12px 16px; font-size: 0.9rem; }
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover { background: rgba(255,255,255,0.2); }
+    </style>
 </head>
 <body>
     <!-- NAVBAR -->
-    <nav class="navbar">
-        <div class="navbar-container">
-            <div class="navbar-brand">
-                <span class="brand-icon">🐕</span>
-                <span class="brand-text">PREPOL RESET</span>
+    <nav>
+        <div class="nav-content">
+            <div class="logo">
+                <span class="logo-icon">🐕</span>
+                <span>PREPOL RESET</span>
             </div>
-            <div class="navbar-menu">
-                <button class="btn-install" id="installBtn" style="display: none;">
-                    <i class="fas fa-download"></i> Instalar App
-                </button>
-                <button class="btn-logout" id="logoutBtn" style="display: none;">
-                    <i class="fas fa-sign-out-alt"></i> Salir
-                </button>
-            </div>
+            <button id="logoutBtn" style="display:none;">Salir</button>
         </div>
     </nav>
 
-    <!-- MAIN CONTAINER -->
-    <div class="main-container">
+    <div class="container">
         <!-- HOME PAGE -->
-        <div id="homePage" class="page">
+        <div id="homePage" class="home-page active">
             <div class="hero">
-                <div class="hero-content">
-                    <h1 class="hero-title">Aprende Cívica <span class="gradient-text">Jugando</span></h1>
-                    <p class="hero-subtitle">Sé un Ciudadano Reset. Domina la cívica peruana de forma divertida.</p>
-                    <button class="btn-primary btn-lg" id="startBtn">
-                        <i class="fas fa-play"></i> Comenzar Juego
-                    </button>
+                <div class="hero-text">
+                    <h1>Aprende Cívica <br><span style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Jugando</span></h1>
+                    <p>Sé un Ciudadano Reset. Domina la cívica peruana de forma divertida y adictiva.</p>
+                    <button class="btn-primary" onclick="showPage('gamePage')">🎮 Comenzar Juego</button>
                 </div>
-                <div class="hero-visual">
-                    <div class="floating-card card-1">
-                        <div class="card-emoji">🏘️</div>
-                        <div class="card-text">Mi Barrio</div>
+                <div class="hero-cards">
+                    <div class="card">
+                        <div class="card-icon">🏘️</div>
+                        <div class="card-title">Mi Barrio</div>
                     </div>
-                    <div class="floating-card card-2">
-                        <div class="card-emoji">🏢</div>
-                        <div class="card-text">Mi Distrito</div>
+                    <div class="card">
+                        <div class="card-icon">🏢</div>
+                        <div class="card-title">Mi Distrito</div>
                     </div>
-                    <div class="floating-card card-3">
-                        <div class="card-emoji">🏛️</div>
-                        <div class="card-text">Mi Región</div>
+                    <div class="card">
+                        <div class="card-icon">🏛️</div>
+                        <div class="card-title">Mi Región</div>
                     </div>
-                    <div class="floating-card card-4">
-                        <div class="card-emoji">🇵🇪</div>
-                        <div class="card-text">Mi País</div>
+                    <div class="card">
+                        <div class="card-icon">🇵🇪</div>
+                        <div class="card-title">Mi País</div>
                     </div>
                 </div>
             </div>
 
-            <!-- FEATURES SECTION -->
-            <section class="features-section">
-                <h2 class="section-title">¿Por qué PREPOL RESET?</h2>
+            <section class="features">
+                <h2>¿Por qué PREPOL RESET?</h2>
                 <div class="features-grid">
-                    <div class="feature-card">
+                    <div class="feature-item">
                         <div class="feature-icon">🎮</div>
                         <h3>Gamificado</h3>
                         <p>Gana Soles Cívicos, sube de rango y compite en duelos</p>
                     </div>
-                    <div class="feature-card">
+                    <div class="feature-item">
                         <div class="feature-icon">📚</div>
                         <h3>Educativo</h3>
-                        <p>Aprende cívica peruana con preguntas reales y explicadas</p>
+                        <p>Aprende cívica peruana con preguntas reales</p>
                     </div>
-                    <div class="feature-card">
+                    <div class="feature-item">
                         <div class="feature-icon">⚡</div>
                         <h3>Rápido</h3>
-                        <p>Lecciones de 2 minutos. Perfectas para cualquier momento</p>
+                        <p>Lecciones de 2 minutos. Juega cuando quieras</p>
                     </div>
-                    <div class="feature-card">
+                    <div class="feature-item">
                         <div class="feature-icon">👥</div>
                         <h3>Multijugador</h3>
-                        <p>Duelos 1v1 con amigos. Apuesta tus Soles Cívicos</p>
+                        <p>Duelos 1v1 con amigos. Apuesta tus Soles</p>
                     </div>
                 </div>
             </section>
 
-            <!-- STATS SECTION -->
-            <section class="stats-section">
-                <div class="stat-item">
+            <div class="stats">
+                <div>
                     <div class="stat-number">60+</div>
                     <div class="stat-label">Preguntas</div>
                 </div>
-                <div class="stat-item">
+                <div>
                     <div class="stat-number">12</div>
                     <div class="stat-label">Niveles</div>
                 </div>
-                <div class="stat-item">
+                <div>
                     <div class="stat-number">4</div>
                     <div class="stat-label">Distritos</div>
                 </div>
-                <div class="stat-item">
+                <div>
                     <div class="stat-number">4</div>
                     <div class="stat-label">Rangos</div>
                 </div>
-            </section>
+            </div>
         </div>
 
         <!-- GAME PAGE -->
-        <div id="gamePage" class="page" style="display: none;">
+        <div id="gamePage" class="game-page">
             <div class="game-header">
                 <div class="player-info">
                     <div class="player-avatar" id="playerAvatar">S</div>
-                    <div class="player-stats">
-                        <div class="stat-item-inline">
-                            <span class="stat-label">Soles:</span>
-                            <span class="stat-value" id="solesDisplay">0</span>
+                    <div>
+                        <div class="stat-item">
+                            <span>Soles Cívicos</span>
+                            <span id="solesDisplay">100</span>
                         </div>
-                        <div class="stat-item-inline">
-                            <span class="stat-label">Rango:</span>
-                            <span class="stat-value" id="rankDisplay">Vecino Alerta</span>
+                    </div>
+                    <div>
+                        <div class="stat-item">
+                            <span>Rango</span>
+                            <span id="rankDisplay">Vecino Alerta</span>
                         </div>
-                        <div class="stat-item-inline">
-                            <span class="stat-label">Vidas:</span>
-                            <span class="stat-value" id="livesDisplay">❤️❤️❤️</span>
+                    </div>
+                    <div>
+                        <div class="stat-item">
+                            <span>Vidas</span>
+                            <span id="livesDisplay">❤️❤️❤️</span>
                         </div>
                     </div>
                 </div>
-                <button class="btn-back" id="backBtn">
-                    <i class="fas fa-arrow-left"></i> Atrás
-                </button>
+                <button class="back-btn" onclick="showPage('homePage')">← Atrás</button>
             </div>
 
-            <div class="districts-container">
-                <h2 class="section-title">Elige tu Distrito</h2>
-                <div class="districts-grid">
-                    <div class="district-card" data-district="0">
-                        <div class="district-emoji">🏘️</div>
-                        <h3>Mi Barrio</h3>
-                        <p>Municipios y presupuestos</p>
-                        <div class="levels-preview">
-                            <span class="level-badge">Nivel 1</span>
-                            <span class="level-badge">Nivel 2</span>
-                            <span class="level-badge">Nivel 3</span>
-                        </div>
+            <h2 style="text-align: center; margin-bottom: 40px; font-size: 2rem;">Elige tu Distrito</h2>
+
+            <div class="districts-grid">
+                <div class="district-card" onclick="selectDistrict(0)">
+                    <div class="district-icon">🏘️</div>
+                    <h3>Mi Barrio</h3>
+                    <p>Municipios y presupuestos locales</p>
+                    <div class="levels">
+                        <span class="level-badge">Nivel 1</span>
+                        <span class="level-badge">Nivel 2</span>
+                        <span class="level-badge">Nivel 3</span>
                     </div>
-                    <div class="district-card" data-district="1">
-                        <div class="district-emoji">🏢</div>
-                        <h3>Mi Distrito</h3>
-                        <p>Obras públicas y fiscalización</p>
-                        <div class="levels-preview">
-                            <span class="level-badge">Nivel 4</span>
-                            <span class="level-badge">Nivel 5</span>
-                            <span class="level-badge">Nivel 6</span>
-                        </div>
+                </div>
+                <div class="district-card" onclick="selectDistrict(1)">
+                    <div class="district-icon">🏢</div>
+                    <h3>Mi Distrito</h3>
+                    <p>Obras públicas y fiscalización</p>
+                    <div class="levels">
+                        <span class="level-badge">Nivel 4</span>
+                        <span class="level-badge">Nivel 5</span>
+                        <span class="level-badge">Nivel 6</span>
                     </div>
-                    <div class="district-card" data-district="2">
-                        <div class="district-emoji">🏛️</div>
-                        <h3>Mi Región</h3>
-                        <p>GORE y leyes regionales</p>
-                        <div class="levels-preview">
-                            <span class="level-badge">Nivel 7</span>
-                            <span class="level-badge">Nivel 8</span>
-                            <span class="level-badge">Nivel 9</span>
-                        </div>
+                </div>
+                <div class="district-card" onclick="selectDistrict(2)">
+                    <div class="district-icon">🏛️</div>
+                    <h3>Mi Región</h3>
+                    <p>GORE y leyes regionales</p>
+                    <div class="levels">
+                        <span class="level-badge">Nivel 7</span>
+                        <span class="level-badge">Nivel 8</span>
+                        <span class="level-badge">Nivel 9</span>
                     </div>
-                    <div class="district-card" data-district="3">
-                        <div class="district-emoji">🇵🇪</div>
-                        <h3>Mi País</h3>
-                        <p>Congreso y leyes nacionales</p>
-                        <div class="levels-preview">
-                            <span class="level-badge">Nivel 10</span>
-                            <span class="level-badge">Nivel 11</span>
-                            <span class="level-badge">Nivel 12</span>
-                        </div>
+                </div>
+                <div class="district-card" onclick="selectDistrict(3)">
+                    <div class="district-icon">🇵🇪</div>
+                    <h3>Mi País</h3>
+                    <p>Congreso y leyes nacionales</p>
+                    <div class="levels">
+                        <span class="level-badge">Nivel 10</span>
+                        <span class="level-badge">Nivel 11</span>
+                        <span class="level-badge">Nivel 12</span>
                     </div>
                 </div>
             </div>
 
             <div class="game-actions">
-                <button class="btn-secondary" id="duelBtn">
-                    <i class="fas fa-crossed-swords"></i> Duelo 1v1
-                </button>
-                <button class="btn-secondary" id="leaderboardBtn">
-                    <i class="fas fa-trophy"></i> Leaderboard
-                </button>
+                <button class="btn-secondary" onclick="showPage('leaderboardPage')">🏆 Leaderboard</button>
+                <button class="btn-secondary" onclick="alert('Duelos en desarrollo')">⚔️ Duelos</button>
             </div>
         </div>
 
         <!-- QUIZ PAGE -->
-        <div id="quizPage" class="page" style="display: none;">
+        <div id="quizPage" class="quiz-page">
             <div class="quiz-header">
-                <button class="btn-back-small" id="backQuizBtn">
-                    <i class="fas fa-arrow-left"></i>
-                </button>
-                <div class="quiz-progress">
-                    <div class="progress-bar" id="progressBar"></div>
+                <button class="back-btn" onclick="showPage('gamePage')">← Atrás</button>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
                 </div>
-                <div class="quiz-lives" id="quizLives">❤️❤️❤️</div>
+                <span id="quizLives">❤️❤️❤️</span>
             </div>
 
-            <div class="vigilante-section">
-                <div class="vigilante-card">
-                    <div class="vigilante-emoji">🐕</div>
-                    <div class="vigilante-text" id="vigilanteText">
-                        ¡Hola! Soy El Vigilante. Responde correctamente para ganar Soles Cívicos.
-                    </div>
-                </div>
+            <div class="question-card">
+                <div class="question-text" id="questionText">¿Pregunta?</div>
+                <div class="options" id="optionsContainer"></div>
             </div>
 
-            <div class="quiz-content">
-                <div class="question-card">
-                    <h3 class="question-text" id="questionText">¿Pregunta?</h3>
-                    <div class="options-container" id="optionsContainer"></div>
-                </div>
-
-                <div class="feedback-section" id="feedbackSection" style="display: none;">
-                    <div class="feedback-card" id="feedbackCard"></div>
-                    <button class="btn-primary" id="nextBtn" style="display: none;">
-                        Siguiente Pregunta
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- DUEL PAGE -->
-        <div id="duelPage" class="page" style="display: none;">
-            <div class="duel-header">
-                <button class="btn-back" id="backDuelBtn">
-                    <i class="fas fa-arrow-left"></i> Atrás
-                </button>
-            </div>
-
-            <div class="duel-container">
-                <h2 class="section-title">Duelos Cívicos</h2>
-                <div class="duel-modes">
-                    <div class="duel-mode-card">
-                        <div class="duel-icon">🎮</div>
-                        <h3>Duelo Rápido</h3>
-                        <p>Compite contra un jugador aleatorio</p>
-                        <button class="btn-primary" id="quickDuelBtn">Jugar</button>
-                    </div>
-                    <div class="duel-mode-card">
-                        <div class="duel-icon">👥</div>
-                        <h3>Duelo con Amigo</h3>
-                        <p>Invita a un amigo a competir</p>
-                        <button class="btn-primary" id="friendDuelBtn">Crear Sala</button>
-                    </div>
-                </div>
-
-                <div class="duel-info">
-                    <h3>¿Cómo funciona?</h3>
-                    <ul>
-                        <li>📊 Ambos responden 5 preguntas</li>
-                        <li>⚡ El más rápido y preciso gana</li>
-                        <li>💰 Apuesta tus Soles Cívicos</li>
-                        <li>🏆 Gana el doble de lo que apostaste</li>
-                    </ul>
-                </div>
-            </div>
+            <div class="feedback" id="feedback"></div>
+            <button class="btn-next" id="nextBtn" onclick="nextQuestion()">Siguiente Pregunta</button>
         </div>
 
         <!-- LEADERBOARD PAGE -->
-        <div id="leaderboardPage" class="page" style="display: none;">
-            <div class="leaderboard-header">
-                <button class="btn-back" id="backLeaderboardBtn">
-                    <i class="fas fa-arrow-left"></i> Atrás
-                </button>
-                <h2>Tabla de Clasificación</h2>
+        <div id="leaderboardPage" class="leaderboard-page">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+                <h2 style="font-size: 2rem;">Tabla de Clasificación</h2>
+                <button class="back-btn" onclick="showPage('gamePage')">← Atrás</button>
             </div>
 
-            <div class="leaderboard-container">
-                <table class="leaderboard-table">
-                    <thead>
-                        <tr>
-                            <th>Posición</th>
-                            <th>Jugador</th>
-                            <th>Soles</th>
-                            <th>Rango</th>
-                        </tr>
-                    </thead>
-                    <tbody id="leaderboardBody">
-                        <!-- Se llena dinámicamente -->
-                    </tbody>
-                </table>
-            </div>
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>Posición</th>
+                        <th>Jugador</th>
+                        <th>Soles</th>
+                        <th>Rango</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboardBody">
+                    <tr>
+                        <td>1</td>
+                        <td>Carlos</td>
+                        <td>2500</td>
+                        <td>Ciudadano Reset</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>María</td>
+                        <td>2100</td>
+                        <td>Gobernador de Barrio</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>Juan</td>
+                        <td>1800</td>
+                        <td>Gobernador de Barrio</td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>Tú</td>
+                        <td id="leaderboardSoles">100</td>
+                        <td id="leaderboardRank">Vecino Alerta</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <!-- MODAL PARA APUESTA -->
-    <div class="modal" id="bettingModal" style="display: none;">
-        <div class="modal-content">
-            <h3>¿Cuántos Soles quieres apostar?</h3>
-            <div class="betting-input">
-                <button class="btn-bet" data-amount="10">10 🪙</button>
-                <button class="btn-bet" data-amount="25">25 🪙</button>
-                <button class="btn-bet" data-amount="50">50 🪙</button>
-                <button class="btn-bet" data-amount="100">100 🪙</button>
-            </div>
-            <button class="btn-secondary" id="cancelBetBtn">Cancelar</button>
-        </div>
-    </div>
-
-    <script src="app.js"></script>
     <script>
-        // Registrar Service Worker
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').catch(err => console.log('SW error:', err));
+        const game = {
+            currentPage: 'homePage',
+            currentQuestion: 0,
+            playerData: {
+                soles: 100,
+                lives: 3,
+                rank: 'Vecino Alerta',
+                score: 0
+            },
+            questions: [
+                { q: '¿Cuál es la función principal de un municipio?', o: ['Legislar leyes', 'Administrar servicios', 'Dirigir el país', 'Controlar provincias'], c: 1 },
+                { q: '¿Quién preside el Congreso?', o: ['El Presidente', 'El Jefe de Gabinete', 'El Presidente del Congreso', 'El Fiscal'], c: 2 },
+                { q: '¿Cuántos años dura un período presidencial?', o: ['3 años', '4 años', '5 años', '6 años'], c: 2 },
+                { q: '¿Qué es una junta vecinal?', o: ['Un grupo de vecinos', 'Una tienda', 'Una escuela', 'Un hospital'], c: 0 },
+                { q: '¿Cuál es el derecho fundamental?', o: ['Trabajar gratis', 'Votar', 'No pagar impuestos', 'Ignorar leyes'], c: 1 }
+            ],
+
+            init() {
+                this.loadData();
+                this.updateUI();
+            },
+
+            loadData() {
+                const saved = localStorage.getItem('prepolData');
+                if (saved) this.playerData = JSON.parse(saved);
+            },
+
+            saveData() {
+                localStorage.setItem('prepolData', JSON.stringify(this.playerData));
+            },
+
+            updateUI() {
+                document.getElementById('solesDisplay').textContent = this.playerData.soles;
+                document.getElementById('rankDisplay').textContent = this.playerData.rank;
+                document.getElementById('livesDisplay').textContent = '❤️'.repeat(this.playerData.lives) + '🖤'.repeat(3 - this.playerData.lives);
+                document.getElementById('quizLives').textContent = '❤️'.repeat(this.playerData.lives) + '🖤'.repeat(3 - this.playerData.lives);
+                document.getElementById('leaderboardSoles').textContent = this.playerData.soles;
+                document.getElementById('leaderboardRank').textContent = this.playerData.rank;
+            }
+        };
+
+        function showPage(pageId) {
+            document.querySelectorAll('[id$="Page"]').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            game.currentPage = pageId;
+            if (pageId === 'quizPage') loadQuestion();
         }
 
-        // PWA Install
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            document.getElementById('installBtn').style.display = 'block';
-        });
+        function selectDistrict(index) {
+            const districts = ['Mi Barrio', 'Mi Distrito', 'Mi Región', 'Mi País'];
+            alert(`Iniciando: ${districts[index]}`);
+            showPage('quizPage');
+        }
 
-        document.getElementById('installBtn')?.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                console.log(`User response to the install prompt: ${outcome}`);
-                deferredPrompt = null;
+        function loadQuestion() {
+            const q = game.questions[game.currentQuestion];
+            document.getElementById('questionText').textContent = q.q;
+            const container = document.getElementById('optionsContainer');
+            container.innerHTML = '';
+            q.o.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = opt;
+                btn.onclick = () => answerQuestion(i, q.c);
+                container.appendChild(btn);
+            });
+            document.getElementById('progressFill').style.width = ((game.currentQuestion + 1) / game.questions.length * 100) + '%';
+            document.getElementById('feedback').classList.remove('show', 'correct', 'incorrect');
+            document.getElementById('nextBtn').classList.remove('show');
+        }
+
+        function answerQuestion(selected, correct) {
+            const isCorrect = selected === correct;
+            const feedback = document.getElementById('feedback');
+            document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+
+            if (isCorrect) {
+                feedback.className = 'feedback show correct';
+                feedback.textContent = '✅ ¡Correcto! +20 Soles Cívicos';
+                game.playerData.soles += 20;
+                game.playerData.score += 20;
+            } else {
+                feedback.className = 'feedback show incorrect';
+                feedback.textContent = '❌ Respuesta incorrecta. Pierdes una vida.';
+                game.playerData.lives--;
             }
-        });
+
+            document.getElementById('nextBtn').classList.add('show');
+            game.updateUI();
+        }
+
+        function nextQuestion() {
+            game.currentQuestion++;
+            if (game.currentQuestion >= game.questions.length) {
+                alert('¡Nivel completado! +100 Soles Cívicos');
+                game.playerData.soles += 100;
+                game.playerData.score += 100;
+                if (game.playerData.score >= 300) game.playerData.rank = 'Fiscalizador Jr.';
+                if (game.playerData.score >= 600) game.playerData.rank = 'Gobernador de Barrio';
+                if (game.playerData.score >= 1000) game.playerData.rank = 'Ciudadano Reset';
+                game.saveData();
+                game.updateUI();
+                showPage('gamePage');
+            } else {
+                loadQuestion();
+            }
+        }
+
+        game.init();
     </script>
 </body>
 </html>
