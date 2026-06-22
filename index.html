@@ -3,44 +3,332 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PREPOL RESET - Juego Cívico Educativo</title>
-    
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
-    
-    <!-- AOS (Animate On Scroll) -->
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    
-    <!-- Estilos personalizados -->
-    <link rel="stylesheet" href="styles.css">
-    
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json">
+    <meta name="description" content="PREPOL RESET - Juego Cívico Educativo tipo Duolingo">
     <meta name="theme-color" content="#1e1b4b">
-    <meta name="description" content="Aprende cívica peruana mientras juegas. Tipo Duolingo pero para educación cívica.">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>PREPOL RESET - Juego Cívico Educativo</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50' y='70' font-size='80' text-anchor='middle'>🐕</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Contenedor principal -->
-    <div id="app"></div>
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-brand">
+                <span class="brand-icon">🐕</span>
+                <span class="brand-text">PREPOL RESET</span>
+            </div>
+            <div class="navbar-menu">
+                <button class="btn-install" id="installBtn" style="display: none;">
+                    <i class="fas fa-download"></i> Instalar App
+                </button>
+                <button class="btn-logout" id="logoutBtn" style="display: none;">
+                    <i class="fas fa-sign-out-alt"></i> Salir
+                </button>
+            </div>
+        </div>
+    </nav>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- AOS JS -->
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
-    
-    <!-- App JS -->
+    <!-- MAIN CONTAINER -->
+    <div class="main-container">
+        <!-- HOME PAGE -->
+        <div id="homePage" class="page">
+            <div class="hero">
+                <div class="hero-content">
+                    <h1 class="hero-title">Aprende Cívica <span class="gradient-text">Jugando</span></h1>
+                    <p class="hero-subtitle">Sé un Ciudadano Reset. Domina la cívica peruana de forma divertida.</p>
+                    <button class="btn-primary btn-lg" id="startBtn">
+                        <i class="fas fa-play"></i> Comenzar Juego
+                    </button>
+                </div>
+                <div class="hero-visual">
+                    <div class="floating-card card-1">
+                        <div class="card-emoji">🏘️</div>
+                        <div class="card-text">Mi Barrio</div>
+                    </div>
+                    <div class="floating-card card-2">
+                        <div class="card-emoji">🏢</div>
+                        <div class="card-text">Mi Distrito</div>
+                    </div>
+                    <div class="floating-card card-3">
+                        <div class="card-emoji">🏛️</div>
+                        <div class="card-text">Mi Región</div>
+                    </div>
+                    <div class="floating-card card-4">
+                        <div class="card-emoji">🇵🇪</div>
+                        <div class="card-text">Mi País</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FEATURES SECTION -->
+            <section class="features-section">
+                <h2 class="section-title">¿Por qué PREPOL RESET?</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🎮</div>
+                        <h3>Gamificado</h3>
+                        <p>Gana Soles Cívicos, sube de rango y compite en duelos</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📚</div>
+                        <h3>Educativo</h3>
+                        <p>Aprende cívica peruana con preguntas reales y explicadas</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h3>Rápido</h3>
+                        <p>Lecciones de 2 minutos. Perfectas para cualquier momento</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">👥</div>
+                        <h3>Multijugador</h3>
+                        <p>Duelos 1v1 con amigos. Apuesta tus Soles Cívicos</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- STATS SECTION -->
+            <section class="stats-section">
+                <div class="stat-item">
+                    <div class="stat-number">60+</div>
+                    <div class="stat-label">Preguntas</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">12</div>
+                    <div class="stat-label">Niveles</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">4</div>
+                    <div class="stat-label">Distritos</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">4</div>
+                    <div class="stat-label">Rangos</div>
+                </div>
+            </section>
+        </div>
+
+        <!-- GAME PAGE -->
+        <div id="gamePage" class="page" style="display: none;">
+            <div class="game-header">
+                <div class="player-info">
+                    <div class="player-avatar" id="playerAvatar">S</div>
+                    <div class="player-stats">
+                        <div class="stat-item-inline">
+                            <span class="stat-label">Soles:</span>
+                            <span class="stat-value" id="solesDisplay">0</span>
+                        </div>
+                        <div class="stat-item-inline">
+                            <span class="stat-label">Rango:</span>
+                            <span class="stat-value" id="rankDisplay">Vecino Alerta</span>
+                        </div>
+                        <div class="stat-item-inline">
+                            <span class="stat-label">Vidas:</span>
+                            <span class="stat-value" id="livesDisplay">❤️❤️❤️</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn-back" id="backBtn">
+                    <i class="fas fa-arrow-left"></i> Atrás
+                </button>
+            </div>
+
+            <div class="districts-container">
+                <h2 class="section-title">Elige tu Distrito</h2>
+                <div class="districts-grid">
+                    <div class="district-card" data-district="0">
+                        <div class="district-emoji">🏘️</div>
+                        <h3>Mi Barrio</h3>
+                        <p>Municipios y presupuestos</p>
+                        <div class="levels-preview">
+                            <span class="level-badge">Nivel 1</span>
+                            <span class="level-badge">Nivel 2</span>
+                            <span class="level-badge">Nivel 3</span>
+                        </div>
+                    </div>
+                    <div class="district-card" data-district="1">
+                        <div class="district-emoji">🏢</div>
+                        <h3>Mi Distrito</h3>
+                        <p>Obras públicas y fiscalización</p>
+                        <div class="levels-preview">
+                            <span class="level-badge">Nivel 4</span>
+                            <span class="level-badge">Nivel 5</span>
+                            <span class="level-badge">Nivel 6</span>
+                        </div>
+                    </div>
+                    <div class="district-card" data-district="2">
+                        <div class="district-emoji">🏛️</div>
+                        <h3>Mi Región</h3>
+                        <p>GORE y leyes regionales</p>
+                        <div class="levels-preview">
+                            <span class="level-badge">Nivel 7</span>
+                            <span class="level-badge">Nivel 8</span>
+                            <span class="level-badge">Nivel 9</span>
+                        </div>
+                    </div>
+                    <div class="district-card" data-district="3">
+                        <div class="district-emoji">🇵🇪</div>
+                        <h3>Mi País</h3>
+                        <p>Congreso y leyes nacionales</p>
+                        <div class="levels-preview">
+                            <span class="level-badge">Nivel 10</span>
+                            <span class="level-badge">Nivel 11</span>
+                            <span class="level-badge">Nivel 12</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-actions">
+                <button class="btn-secondary" id="duelBtn">
+                    <i class="fas fa-crossed-swords"></i> Duelo 1v1
+                </button>
+                <button class="btn-secondary" id="leaderboardBtn">
+                    <i class="fas fa-trophy"></i> Leaderboard
+                </button>
+            </div>
+        </div>
+
+        <!-- QUIZ PAGE -->
+        <div id="quizPage" class="page" style="display: none;">
+            <div class="quiz-header">
+                <button class="btn-back-small" id="backQuizBtn">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <div class="quiz-progress">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                <div class="quiz-lives" id="quizLives">❤️❤️❤️</div>
+            </div>
+
+            <div class="vigilante-section">
+                <div class="vigilante-card">
+                    <div class="vigilante-emoji">🐕</div>
+                    <div class="vigilante-text" id="vigilanteText">
+                        ¡Hola! Soy El Vigilante. Responde correctamente para ganar Soles Cívicos.
+                    </div>
+                </div>
+            </div>
+
+            <div class="quiz-content">
+                <div class="question-card">
+                    <h3 class="question-text" id="questionText">¿Pregunta?</h3>
+                    <div class="options-container" id="optionsContainer"></div>
+                </div>
+
+                <div class="feedback-section" id="feedbackSection" style="display: none;">
+                    <div class="feedback-card" id="feedbackCard"></div>
+                    <button class="btn-primary" id="nextBtn" style="display: none;">
+                        Siguiente Pregunta
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- DUEL PAGE -->
+        <div id="duelPage" class="page" style="display: none;">
+            <div class="duel-header">
+                <button class="btn-back" id="backDuelBtn">
+                    <i class="fas fa-arrow-left"></i> Atrás
+                </button>
+            </div>
+
+            <div class="duel-container">
+                <h2 class="section-title">Duelos Cívicos</h2>
+                <div class="duel-modes">
+                    <div class="duel-mode-card">
+                        <div class="duel-icon">🎮</div>
+                        <h3>Duelo Rápido</h3>
+                        <p>Compite contra un jugador aleatorio</p>
+                        <button class="btn-primary" id="quickDuelBtn">Jugar</button>
+                    </div>
+                    <div class="duel-mode-card">
+                        <div class="duel-icon">👥</div>
+                        <h3>Duelo con Amigo</h3>
+                        <p>Invita a un amigo a competir</p>
+                        <button class="btn-primary" id="friendDuelBtn">Crear Sala</button>
+                    </div>
+                </div>
+
+                <div class="duel-info">
+                    <h3>¿Cómo funciona?</h3>
+                    <ul>
+                        <li>📊 Ambos responden 5 preguntas</li>
+                        <li>⚡ El más rápido y preciso gana</li>
+                        <li>💰 Apuesta tus Soles Cívicos</li>
+                        <li>🏆 Gana el doble de lo que apostaste</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- LEADERBOARD PAGE -->
+        <div id="leaderboardPage" class="page" style="display: none;">
+            <div class="leaderboard-header">
+                <button class="btn-back" id="backLeaderboardBtn">
+                    <i class="fas fa-arrow-left"></i> Atrás
+                </button>
+                <h2>Tabla de Clasificación</h2>
+            </div>
+
+            <div class="leaderboard-container">
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>Posición</th>
+                            <th>Jugador</th>
+                            <th>Soles</th>
+                            <th>Rango</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardBody">
+                        <!-- Se llena dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PARA APUESTA -->
+    <div class="modal" id="bettingModal" style="display: none;">
+        <div class="modal-content">
+            <h3>¿Cuántos Soles quieres apostar?</h3>
+            <div class="betting-input">
+                <button class="btn-bet" data-amount="10">10 🪙</button>
+                <button class="btn-bet" data-amount="25">25 🪙</button>
+                <button class="btn-bet" data-amount="50">50 🪙</button>
+                <button class="btn-bet" data-amount="100">100 🪙</button>
+            </div>
+            <button class="btn-secondary" id="cancelBetBtn">Cancelar</button>
+        </div>
+    </div>
+
     <script src="app.js"></script>
+    <script>
+        // Registrar Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(err => console.log('SW error:', err));
+        }
+
+        // PWA Install
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installBtn').style.display = 'block';
+        });
+
+        document.getElementById('installBtn')?.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to the install prompt: ${outcome}`);
+                deferredPrompt = null;
+            }
+        });
+    </script>
 </body>
 </html>
