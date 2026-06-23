@@ -28,6 +28,12 @@ const gameData = {
         { levelId: 0, q: '¿Quiénes son los regidores?', o: ['Jueces', 'Consejeros elegidos', 'Policías', 'Maestros'], c: 1 },
         { levelId: 0, q: '¿Qué es el presupuesto municipal?', o: ['Dinero personal', 'Dinero para servicios públicos', 'Dinero de banco', 'Dinero privado'], c: 1 },
         { levelId: 0, q: '¿Puedes revocar a un alcalde?', o: ['No', 'Sí, con firma de ciudadanos', 'Solo el congreso', 'Nunca'], c: 1 },
+        // Nivel 1: La Junta Vecinal
+        { levelId: 1, q: '¿Qué es una Junta Vecinal?', o: ['Un partido político', 'Una organización de vecinos', 'Un grupo de policías', 'Una empresa privada'], c: 1 },
+        { levelId: 1, q: '¿Cuál es el objetivo principal de la Junta Vecinal?', o: ['Cobrar impuestos', 'Mejorar el barrio', 'Vender productos', 'Organizar fiestas'], c: 1 },
+        { levelId: 1, q: '¿Quién preside la Junta Vecinal?', o: ['El Alcalde', 'El Presidente de la Junta', 'Un Regidor', 'El Comisario'], c: 1 },
+        { levelId: 1, q: '¿El cargo en la Junta Vecinal es remunerado?', o: ['Sí, ganan sueldo', 'No, es ad honorem (voluntario)', 'Solo los domingos', 'A veces'], c: 1 },
+        { levelId: 1, q: '¿Quién reconoce oficialmente a una Junta Vecinal?', o: ['El Congreso', 'La Municipalidad', 'El Presidente', 'La ONU'], c: 1 },
     ]
 };
 
@@ -240,6 +246,12 @@ function showError(message, type = 'error') {
 function startLevel(levelId) {
     if (levelId > 0 && !currentUser.completedLevels.includes(levelId - 1)) {
         showError('🔒 Completa el nivel anterior primero');
+        return;
+    }
+
+    const quizzes = gameData.quizzes.filter(q => q.levelId === levelId);
+    if (quizzes.length === 0) {
+        showError('🚧 Este nivel aún no tiene preguntas disponibles');
         return;
     }
 
