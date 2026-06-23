@@ -314,15 +314,19 @@ async function loginUser() {
         let users = JSON.parse(localStorage.getItem('prepol_users') || '{}');
         let userData = users[username];
 
-        if (!userData && typeof db !== 'undefined' && db !== null) {
+        // Intentar siempre obtener los datos más frescos de Firebase si hay conexión
+        if (typeof db !== 'undefined' && db !== null) {
             try {
                 const userSnap = await db.collection('users').doc(username).get();
                 if (userSnap.exists()) {
                     userData = userSnap.data();
+                    // Actualizar caché local
                     users[username] = userData;
                     localStorage.setItem('prepol_users', JSON.stringify(users));
                 }
-            } catch (e) { console.log("Firebase no disponible"); }
+            } catch (e) { 
+                console.log("Usando datos locales (Firebase no disponible)"); 
+            }
         }
 
         if (!userData) {
@@ -408,20 +412,28 @@ function updateLevelStates() {
 async function saveProgress() {
     if (!currentUser) return;
     
+    // Actualizar localStorage primero para respuesta rápida
     let users = JSON.parse(localStorage.getItem('prepol_users') || '{}');
     users[currentUser.username] = currentUser;
     localStorage.setItem('prepol_users', JSON.stringify(users));
 
+    // Sincronizar con Firebase (Fuente de verdad)
     if (typeof db !== 'undefined' && db !== null) {
         try {
-            await db.collection('users').doc(currentUser.username).update({
+            // Usamos set con merge: true para asegurar que el documento exista o se actualice correctamente
+            await db.collection('users').doc(currentUser.username).set({
+                username: currentUser.username,
+                password: currentUser.password, // Mantener contraseña sincronizada
                 soles: currentUser.soles,
                 rank: currentUser.rank,
                 completedLevels: currentUser.completedLevels,
                 availableLives: currentUser.availableLives,
-                lastLivesLostTime: currentUser.lastLivesLostTime
-            });
-        } catch (e) { console.log("Error sincronizando"); }
+                lastLivesLostTime: currentUser.lastLivesLostTime,
+                lastUpdated: new Date().toISOString()
+            }, { merge: true });
+        } catch (e) { 
+            console.error("Error sincronizando con Firebase:", e); 
+        }
     }
 }
 
