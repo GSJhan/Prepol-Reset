@@ -206,6 +206,7 @@ const gameData = {
 // ========== ESTADO DEL JUEGO ==========
 let currentUser = null;
 let currentLevel = null;
+let currentLevelQuizzes = []; // Copia local de las preguntas del nivel
 let currentQuestionIndex = 0;
 let correctAnswers = 0;
 let lives = 3;
@@ -545,6 +546,7 @@ function startLevel(levelId) {
         return;
     }
 
+    // Obtener preguntas del nivel y mezclarlas
     const quizzes = gameData.quizzes.filter(q => q.levelId === levelId);
     if (quizzes.length === 0) {
         showError('🚧 Este nivel aún no tiene preguntas disponibles');
@@ -552,6 +554,7 @@ function startLevel(levelId) {
     }
 
     currentLevel = gameData.levels[levelId];
+    currentLevelQuizzes = shuffleArray([...quizzes]); // Copia mezclada para el nivel
     currentQuestionIndex = 0;
     correctAnswers = 0;
     lives = 3;
@@ -565,13 +568,12 @@ function startLevel(levelId) {
 }
 
 function showQuestion() {
-    const quizzes = gameData.quizzes.filter(q => q.levelId === currentLevel.id);
-    if (currentQuestionIndex >= quizzes.length) {
+    if (currentQuestionIndex >= currentLevelQuizzes.length) {
         finishLevel(true);
         return;
     }
 
-    const quiz = quizzes[currentQuestionIndex];
+    const quiz = currentLevelQuizzes[currentQuestionIndex];
     document.getElementById('questionText').textContent = quiz.q;
 
     const optionsContainer = document.getElementById('optionsContainer');
@@ -593,9 +595,14 @@ function showQuestion() {
             } else {
                 lives--;
                 document.getElementById('livesDisplay').textContent = lives;
-                if (lives <= 0) finishLevel(false);
-                else {
-                    currentQuestionIndex++;
+                
+                if (lives <= 0) {
+                    finishLevel(false);
+                } else {
+                    // SI FALLA: Mover la pregunta actual al final de la lista
+                    const failedQuiz = currentLevelQuizzes.splice(currentQuestionIndex, 1)[0];
+                    currentLevelQuizzes.push(failedQuiz);
+                    // No aumentamos currentQuestionIndex porque splice ya movió los elementos
                     showQuestion();
                 }
             }
