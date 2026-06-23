@@ -1,28 +1,16 @@
 
-
 let db;
 try {
     if (typeof firebase !== 'undefined') {
         firebase.initializeApp(firebaseConfig);
         db = firebase.firestore();
-        // Habilitar persistencia offline para mejor experiencia
-        db.enablePersistence().catch((err) => {
-            console.warn("Persistencia offline no disponible:", err.code);
-        });
-    } else {
-        console.error("Firebase SDK no cargado.");
+        db.enablePersistence().catch(() => {});
     }
-} catch (error) {
-    console.error("Error al inicializar Firebase:", error);
-}
-
+} catch (e) {}
 
 const USE_LOCAL_STORAGE = true;
-
-
 const LIVES_MAX = 3;
-const LIVES_REGENERATION_TIME = 15 * 60 * 1000; // 15 minutos en milisegundos
-
+const LIVES_REGENERATION_TIME = 15 * 60 * 1000;
 
 function shuffleArray(array) {
     const shuffled = [...array];
@@ -42,32 +30,17 @@ function getRankByPoints(soles) {
 }
 
 function getAvailableLives(user) {
-    if (!user.lastLivesLostTime) {
-        return LIVES_MAX;
-    }
-    
+    if (!user || !user.lastLivesLostTime) return LIVES_MAX;
     const now = new Date().getTime();
     const timePassed = now - user.lastLivesLostTime;
-    
-    if (timePassed >= LIVES_REGENERATION_TIME) {
-        return LIVES_MAX;
-    }
-    
-    return 0;
+    return timePassed >= LIVES_REGENERATION_TIME ? LIVES_MAX : 0;
 }
 
 function getTimeUntilLivesRegenerate(user) {
-    if (!user.lastLivesLostTime) {
-        return 0;
-    }
-    
+    if (!user || !user.lastLivesLostTime) return 0;
     const now = new Date().getTime();
     const timePassed = now - user.lastLivesLostTime;
-    
-    if (timePassed >= LIVES_REGENERATION_TIME) {
-        return 0;
-    }
-    
+    if (timePassed >= LIVES_REGENERATION_TIME) return 0;
     return Math.ceil((LIVES_REGENERATION_TIME - timePassed) / 1000);
 }
 
@@ -76,7 +49,6 @@ function formatTime(seconds) {
     const secs = seconds % 60;
     return `${minutes}:${secs.toString().padStart(2, '0')}`;
 }
-
 
 const gameData = {
     levels: [
@@ -98,159 +70,112 @@ const gameData = {
         { id: 15, name: 'Ciudadanía', mundo: 4, preguntas: 5, soles: 50 }
     ],
     quizzes: [
-        // NIVEL 0: El Municipio
         { levelId: 0, q: '¿Cuál es la función principal del alcalde en una municipalidad?', o: ['Hacer leyes nacionales', 'Administrar servicios locales y representar al municipio', 'Juzgar delitos civiles', 'Controlar a la policía nacional'], c: 1 },
         { levelId: 0, q: '¿Cuánto dura el mandato de un alcalde en Perú?', o: ['2 años', '3 años', '4 años', '5 años'], c: 2 },
         { levelId: 0, q: '¿Cuál es la diferencia entre un alcalde y un regidor?', o: ['No hay diferencia', 'El alcalde es elegido por votación y el regidor es nombrado', 'El alcalde administra y el regidor es parte del consejo municipal', 'El regidor tiene más poder que el alcalde'], c: 2 },
         { levelId: 0, q: '¿Qué es el presupuesto municipal y cuál es su propósito?', o: ['Dinero personal del alcalde', 'Plan de gastos para servicios públicos del municipio', 'Dinero que presta el banco', 'Dinero privado de empresas'], c: 1 },
         { levelId: 0, q: '¿Mediante qué mecanismo puedes revocar a un alcalde?', o: ['No se puede revocar', 'Sí, con firma de ciudadanos en una petición formal', 'Solo el congreso puede hacerlo', 'Nunca se puede revocar'], c: 1 },
-        
-        // NIVEL 1: La Junta Vecinal
         { levelId: 1, q: '¿Qué es una Junta Vecinal y cuál es su rol en la comunidad?', o: ['Un partido político local', 'Una organización de vecinos que participa en decisiones comunitarias', 'Un grupo de policías comunitarios', 'Una empresa privada de servicios'], c: 1 },
         { levelId: 1, q: '¿Cuál es el objetivo principal de una Junta Vecinal?', o: ['Cobrar impuestos a los vecinos', 'Mejorar el barrio y representar intereses comunitarios', 'Vender productos a los vecinos', 'Organizar solo fiestas y eventos'], c: 1 },
         { levelId: 1, q: '¿Quién preside una Junta Vecinal y cómo es elegido?', o: ['El Alcalde la preside automáticamente', 'Un Presidente elegido por los vecinos de la junta', 'Un Regidor designado por el municipio', 'El Comisario de la zona'], c: 1 },
         { levelId: 1, q: '¿El cargo en una Junta Vecinal es remunerado?', o: ['Sí, ganan un sueldo fijo', 'No, es ad honorem (voluntario)', 'Solo los domingos se paga', 'A veces se paga'], c: 1 },
         { levelId: 1, q: '¿Quién reconoce oficialmente a una Junta Vecinal?', o: ['El Congreso de la República', 'La Municipalidad local', 'El Presidente de la República', 'La ONU'], c: 1 },
-        
-        // NIVEL 2: Presupuesto
         { levelId: 2, q: '¿Cómo se determina el presupuesto municipal anualmente?', o: ['Lo decide solo el alcalde', 'Se elabora participativamente y es aprobado por el consejo municipal', 'Lo envía el gobierno central', 'Lo deciden los empresarios'], c: 1 },
         { levelId: 2, q: '¿En qué áreas se invierte principalmente el presupuesto municipal?', o: ['Solo en sueldos de empleados', 'Educación, salud, infraestructura, servicios básicos', 'Solo en obras de lujo', 'En viajes del alcalde'], c: 1 },
         { levelId: 2, q: '¿Qué es el presupuesto participativo?', o: ['Dinero que da el gobierno central', 'Proceso donde ciudadanos participan en decidir cómo se gasta parte del presupuesto', 'Dinero que piden prestado', 'Dinero que no se gasta'], c: 1 },
         { levelId: 2, q: '¿Quién fiscaliza que el presupuesto se gaste correctamente?', o: ['Solo el alcalde', 'La ciudadanía, regidores y órganos de control', 'Nadie lo fiscaliza', 'Solo el gobierno central'], c: 1 },
         { levelId: 2, q: '¿Cuál es la fuente principal de ingresos de un municipio?', o: ['Impuestos nacionales solamente', 'Impuestos locales, canon minero, transferencias del estado', 'Dinero de empresas privadas', 'Donaciones internacionales'], c: 1 },
-        
-        // NIVEL 3: Fiscalización
         { levelId: 3, q: '¿Qué significa fiscalizar en el contexto municipal?', o: ['Cobrar más impuestos', 'Vigilar y controlar que se cumplan leyes y se gaste correctamente', 'Hacer auditorías privadas', 'Revisar solo gastos grandes'], c: 1 },
         { levelId: 3, q: '¿Quiénes pueden fiscalizar la gestión municipal?', o: ['Solo el alcalde', 'Ciudadanos, medios, órganos de control y sociedad civil', 'Solo el gobierno central', 'Solo los regidores'], c: 1 },
         { levelId: 3, q: '¿Qué es una auditoría municipal?', o: ['Un castigo al alcalde', 'Revisión detallada de cuentas y gastos para verificar legalidad', 'Un impuesto nuevo', 'Una reunión de vecinos'], c: 1 },
         { levelId: 3, q: '¿Cuál es el mecanismo de denuncia si encuentras corrupción?', o: ['No hay forma de denunciar', 'Puedes denunciar ante la Contraloría, Fiscalía u órganos de control', 'Solo los regidores pueden denunciar', 'Debes esperar a las elecciones'], c: 1 },
         { levelId: 3, q: '¿Qué es la Contraloría y qué función tiene?', o: ['Un banco municipal', 'Órgano que audita y fiscaliza la gestión pública', 'Una empresa privada', 'Un grupo de policías'], c: 1 },
-        
-        // NIVEL 4: Obras Públicas
         { levelId: 4, q: '¿Qué son las obras públicas?', o: ['Negocios privados del alcalde', 'Proyectos de infraestructura financiados con dinero público para beneficio colectivo', 'Trabajos que hacen solo los empleados municipales', 'Construcciones privadas en la ciudad'], c: 1 },
         { levelId: 4, q: '¿Cuál es el proceso para ejecutar una obra pública?', o: ['El alcalde decide y construye', 'Planificación, presupuesto, licitación, ejecución y supervisión', 'Se construye sin permiso', 'Solo se hacen si hay dinero extra'], c: 1 },
         { levelId: 4, q: '¿Qué es una licitación en obras públicas?', o: ['Un impuesto a los constructores', 'Proceso competitivo donde empresas presentan propuestas para ganar un contrato', 'Un permiso de construcción', 'Una multa por mala obra'], c: 1 },
         { levelId: 4, q: '¿Cuál es el objetivo de supervisar una obra pública?', o: ['Entretener al alcalde', 'Verificar que se cumpla con calidad, presupuesto y cronograma', 'Cobrar dinero extra', 'Nada, no es necesario'], c: 1 },
         { levelId: 4, q: '¿Quién puede denunciar una obra pública de mala calidad?', o: ['Solo los ingenieros', 'Cualquier ciudadano puede denunciar ante municipio o autoridades', 'Nadie puede denunciar', 'Solo el alcalde'], c: 1 },
-        
-        // NIVEL 5: Denuncia Fácil
         { levelId: 5, q: '¿Qué es un mecanismo de denuncia fácil?', o: ['Un castigo rápido', 'Sistema simplificado para que ciudadanos reporten problemas sin complicaciones', 'Una multa automática', 'Un permiso de construcción'], c: 1 },
         { levelId: 5, q: '¿Cuáles son ejemplos de problemas que puedes denunciar?', o: ['Solo robos', 'Baches, servicios deficientes, corrupción, obras incompletas', 'Nada se puede denunciar', 'Solo problemas de tráfico'], c: 1 },
         { levelId: 5, q: '¿Dónde puedes hacer una denuncia en tu municipio?', o: ['Solo en persona', 'Municipalidad, líneas telefónicas, plataformas online, redes sociales', 'No hay lugar para denunciar', 'Solo en la comisaría'], c: 1 },
         { levelId: 5, q: '¿Qué pasa después de hacer una denuncia?', o: ['Nada', 'Se registra, investiga y da seguimiento', 'Te multan por denunciar', 'Se ignora'], c: 1 },
         { levelId: 5, q: '¿Puedes denunciar de forma anónima?', o: ['No, siempre debes identificarte', 'Sí, muchos sistemas permiten denuncias anónimas', 'Solo si eres regidor', 'Depende del día'], c: 1 },
-        
-        // NIVEL 6: El Regidor
         { levelId: 6, q: '¿Quién es un regidor y cuál es su rol?', o: ['El alcalde', 'Representante elegido que forma parte del consejo municipal', 'Un empleado del municipio', 'Un policía'], c: 1 },
         { levelId: 6, q: '¿Cuántos regidores hay en un municipio?', o: ['Siempre 5', 'Varía según el tamaño del municipio', '1 siempre', '10 siempre'], c: 1 },
         { levelId: 6, q: '¿Cuál es la función principal del consejo municipal?', o: ['Ejecutar obras', 'Legislar localmente y fiscalizar al alcalde', 'Cobrar impuestos', 'Hacer campañas políticas'], c: 1 },
         { levelId: 6, q: '¿Pueden los regidores ser reelegidos?', o: ['No, solo un mandato', 'Sí, pueden ser reelegidos si los ciudadanos lo desean', 'Solo 2 veces', 'Nunca'], c: 1 },
         { levelId: 6, q: '¿Qué sucede si un regidor no cumple sus funciones?', o: ['Nada', 'Puede ser revocado por los ciudadanos', 'Recibe un premio', 'Sigue indefinidamente'], c: 1 },
-        
-        // NIVEL 7: Participación
         { levelId: 7, q: '¿Qué es la participación ciudadana?', o: ['Votar solo en elecciones', 'Involucrarse activamente en decisiones públicas y gestión municipal', 'Pagar impuestos', 'Trabajar en el municipio'], c: 1 },
         { levelId: 7, q: '¿Cuáles son formas de participación ciudadana?', o: ['Solo votar', 'Juntas vecinales, cabildos abiertos, presupuesto participativo, denuncias', 'No hay formas de participar', 'Solo firmar peticiones'], c: 1 },
         { levelId: 7, q: '¿Qué es un cabildo abierto?', o: ['Una reunión privada del alcalde', 'Asamblea pública donde ciudadanos dialogan con autoridades', 'Un evento de fiesta', 'Una votación'], c: 1 },
         { levelId: 7, q: '¿Por qué es importante la participación ciudadana?', o: ['No es importante', 'Mejora la gestión, transparencia y representa intereses de la comunidad', 'Solo para entretener', 'Para cobrar impuestos'], c: 1 },
         { levelId: 7, q: '¿Qué derechos tienes como ciudadano en tu municipio?', o: ['Ninguno', 'Acceso a información, participación, petición y fiscalización', 'Solo obedecer', 'Solo pagar'], c: 1 },
-        
-        // NIVEL 8: El GORE
         { levelId: 8, q: '¿Qué es el GORE?', o: ['Un alcalde regional', 'Gobierno Regional que administra la región', 'Una municipalidad grande', 'Un banco'], c: 1 },
         { levelId: 8, q: '¿Quién lidera el GORE?', o: ['El Presidente de la República', 'El Gobernador Regional elegido por votación', 'El Alcalde', 'El Congresista'], c: 1 },
         { levelId: 8, q: '¿Cuál es la diferencia entre municipio y región?', o: ['No hay diferencia', 'Municipio es local, región agrupa varios municipios', 'Región es más pequeña', 'Son lo mismo'], c: 1 },
         { levelId: 8, q: '¿Qué responsabilidades tiene el GORE?', o: ['Ninguna', 'Educación, salud, infraestructura regional, desarrollo económico', 'Solo hacer leyes nacionales', 'Solo recolectar impuestos'], c: 1 },
         { levelId: 8, q: '¿Cuánto dura el mandato de un gobernador regional?', o: ['2 años', '4 años', '5 años', '6 años'], c: 1 },
-        
-        // NIVEL 9: Canon Minero
         { levelId: 9, q: '¿Qué es el canon minero?', o: ['Un impuesto a los mineros', 'Porcentaje de ingresos de actividad minera que va a gobiernos locales', 'Una mina del gobierno', 'Un permiso de minería'], c: 1 },
         { levelId: 9, q: '¿A quiénes beneficia el canon minero?', o: ['Solo a la empresa minera', 'Gobiernos regionales y municipales de zonas mineras', 'Solo al gobierno central', 'A ninguno'], c: 1 },
         { levelId: 9, q: '¿En qué deben invertir el canon minero los gobiernos?', o: ['En gastos personales', 'En educación, salud, infraestructura y desarrollo', 'En viajes', 'En nada específico'], c: 1 },
         { levelId: 9, q: '¿Cuál es el porcentaje del canon minero?', o: ['1%', '5%', 'Varía según el mineral y acuerdos', '50%'], c: 2 },
         { levelId: 9, q: '¿Qué problema puede ocurrir con el canon minero?', o: ['Nada', 'Mal uso, corrupción o falta de planificación en su inversión', 'Que no haya minería', 'Que sea muy poco'], c: 1 },
-        
-        // NIVEL 10: Leyes Regionales
         { levelId: 10, q: '¿Qué son las leyes regionales?', o: ['Leyes nacionales', 'Normas que emite el GORE para regular la región', 'Leyes internacionales', 'Leyes municipales'], c: 1 },
         { levelId: 10, q: '¿Quién aprueba las leyes regionales?', o: ['El Presidente', 'El Consejo Regional', 'El Alcalde', 'El Congreso'], c: 1 },
         { levelId: 10, q: '¿Pueden las leyes regionales contradecir leyes nacionales?', o: ['Sí, siempre', 'No, deben estar en concordancia con leyes nacionales', 'A veces', 'Depende del gobernador'], c: 1 },
-        { levelId: 10, q: '¿Cuál es un ejemplo de ley regional?', o: ['Leyes de tránsito nacional', 'Ordenanzas sobre educación regional o protección ambiental', 'Leyes del Congreso', 'Leyes internacionales'], c: 1 },
-        { levelId: 10, q: '¿Quién fiscaliza el cumplimiento de leyes regionales?', o: ['Nadie', 'Ciudadanía, órganos de control y poder judicial', 'Solo el gobernador', 'Solo el Congreso'], c: 1 },
-        
-        // NIVEL 11: Presupuesto Regional
-        { levelId: 11, q: '¿Cómo se forma el presupuesto regional?', o: ['Lo decide solo el gobernador', 'Ingresos tributarios, canon minero, transferencias del estado', 'Dinero que pide prestado', 'Dinero de empresas'], c: 1 },
-        { levelId: 11, q: '¿En qué invierte principalmente el presupuesto regional?', o: ['En gastos personales', 'Educación, salud, infraestructura, desarrollo económico', 'En entretenimiento', 'En nada'], c: 1 },
-        { levelId: 11, q: '¿Quién aprueba el presupuesto regional?', o: ['El gobernador solo', 'El Consejo Regional', 'El Alcalde', 'El Presidente'], c: 1 },
-        { levelId: 11, q: '¿Pueden los ciudadanos participar en decisiones del presupuesto regional?', o: ['No', 'Sí, a través de presupuesto participativo y cabildos', 'Solo los regidores', 'Solo los empresarios'], c: 1 },
-        { levelId: 11, q: '¿Qué sucede si el presupuesto regional se gasta mal?', o: ['Nada', 'Puede haber investigación, sanciones y revocatoria', 'Se ignora', 'Se premia'], c: 1 },
-        
-        // NIVEL 12: El Congreso
-        { levelId: 12, q: '¿Qué es el Congreso de la República?', o: ['Un municipio grande', 'Órgano legislativo que representa al país y hace leyes nacionales', 'Una empresa', 'Un banco'], c: 1 },
-        { levelId: 12, q: '¿Cuántos congresistas hay en Perú?', o: ['50', '100', '130', '200'], c: 2 },
-        { levelId: 12, q: '¿Cuál es la función principal del Congreso?', o: ['Ejecutar obras', 'Hacer leyes, fiscalizar al ejecutivo, representar al pueblo', 'Cobrar impuestos', 'Juzgar delitos'], c: 1 },
-        { levelId: 12, q: '¿Cuánto dura el mandato de un congresista?', o: ['2 años', '4 años', '5 años', '6 años'], c: 1 },
-        { levelId: 12, q: '¿Quién elige a los congresistas?', o: ['El Presidente', 'Los ciudadanos mediante votación', 'El Poder Judicial', 'Los gobernadores'], c: 1 },
-        
-        // NIVEL 13: Las Leyes
-        { levelId: 13, q: '¿Cuál es el proceso para crear una ley?', o: ['El Presidente la crea solo', 'Propuesta, debate, votación en Congreso, promulgación', 'Los ciudadanos la votan', 'Se crea sin proceso'], c: 1 },
-        { levelId: 13, q: '¿Quién puede proponer una ley?', o: ['Solo el Presidente', 'Congresistas, ciudadanos (iniciativa legislativa), poder ejecutivo', 'Solo los alcaldes', 'Solo los jueces'], c: 1 },
-        { levelId: 13, q: '¿Qué es una ley de iniciativa legislativa?', o: ['Una ley que hace el Congreso', 'Ley propuesta por ciudadanos con firmas', 'Una ley del Presidente', 'Una ley regional'], c: 1 },
-        { levelId: 13, q: '¿Quién promulga una ley?', o: ['El Congreso', 'El Presidente de la República', 'Los ciudadanos', 'Los alcaldes'], c: 1 },
-        { levelId: 13, q: '¿Puede el Presidente rechazar una ley aprobada?', o: ['No, siempre se aprueba', 'Sí, mediante veto que puede ser rechazado por Congreso', 'Siempre la rechaza', 'Depende del día'], c: 1 },
-        
-        // NIVEL 14: Voto Informado
-        { levelId: 14, q: '¿Qué es el voto informado?', o: ['Votar sin pensar', 'Votar basándose en información verificada sobre candidatos', 'Votar por amigos', 'No votar'], c: 1 },
-        { levelId: 14, q: '¿Dónde puedes buscar información sobre candidatos?', o: ['Ningún lugar', 'Medios, propuestas públicas, plataformas electorales, debates', 'Solo en redes sociales', 'Solo en periódicos viejos'], c: 1 },
-        { levelId: 14, q: '¿Cuál es la importancia del voto informado?', o: ['Ninguna', 'Mejora calidad de representantes y decisiones públicas', 'Solo para pasar tiempo', 'Para cobrar dinero'], c: 1 },
-        { levelId: 14, q: '¿Qué debes verificar antes de votar?', o: ['Nada', 'Propuestas, experiencia, antecedentes, coherencia del candidato', 'Solo el nombre', 'Solo la edad'], c: 1 },
-        { levelId: 14, q: '¿Cómo identificar información falsa sobre candidatos?', o: ['No se puede', 'Verificar fuentes, contrastar información, revisar datos oficiales', 'Creer todo lo que ves', 'Ignorar todo'], c: 1 },
-        
-        // NIVEL 15: Ciudadanía
-        { levelId: 15, q: '¿Qué es la ciudadanía?', o: ['Solo tener DNI', 'Condición de miembro de una comunidad con derechos y deberes', 'Ser rico', 'Ser mayor de edad'], c: 1 },
-        { levelId: 15, q: '¿Cuáles son los derechos fundamentales de un ciudadano?', o: ['Ninguno', 'Voto, libertad de expresión, acceso a justicia, participación', 'Solo trabajar', 'Solo pagar impuestos'], c: 1 },
-        { levelId: 15, q: '¿Cuáles son los deberes de un ciudadano?', o: ['Ninguno', 'Pagar impuestos, respetar leyes, participar en defensa del país', 'Solo obedecer', 'Solo votar'], c: 1 },
-        { levelId: 15, q: '¿Cómo ejerces tu ciudadanía activamente?', o: ['No se puede', 'Votando, participando, denunciando, fiscalizando, informándose', 'Solo pagando', 'Solo trabajando'], c: 1 },
-        { levelId: 15, q: '¿Cuál es el propósito final de la ciudadanía?', o: ['Ninguno', 'Construir una sociedad democrática, justa y participativa', 'Solo obedecer', 'Solo enriquecerse'], c: 1 }
+        { levelId: 10, q: '¿Cuál es un ejemplo de ley regional?', o: ['Leyes de tránsito nacional', 'Ordenanzas sobre educación regional o protección ambiental', 'Leyes del Congreso', 'Leyes de la ONU'], c: 1 },
+        { levelId: 10, q: '¿Dónde se publican las leyes regionales?', o: ['En Facebook', 'En el diario oficial El Peruano y portales regionales', 'No se publican', 'En la televisión'], c: 1 },
+        { levelId: 11, q: '¿Qué es el presupuesto regional?', o: ['Dinero del gobernador', 'Plan de gastos anual de la región para obras y servicios', 'Dinero de las empresas', 'Un préstamo bancario'], c: 1 },
+        { levelId: 11, q: '¿Quién aprueba el presupuesto regional?', o: ['El Alcalde', 'El Consejo Regional', 'El Presidente', 'El Congreso'], c: 1 },
+        { levelId: 11, q: '¿Qué pasa si no se gasta todo el presupuesto regional?', o: ['Se lo queda el gobernador', 'Regresa al estado o se reprograma para el siguiente año', 'Se pierde para siempre', 'Se reparte entre vecinos'], c: 1 },
+        { levelId: 11, q: '¿Cuál es la prioridad en el presupuesto regional?', o: ['Gastos de lujo', 'Salud, educación, infraestructura y desarrollo social', 'Viajes al extranjero', 'Publicidad política'], c: 1 },
+        { levelId: 11, q: '¿Cómo puede el ciudadano vigilar el presupuesto regional?', o: ['No puede', 'A través de portales de transparencia y consejos de participación', 'Solo por noticias', 'Esperando a las elecciones'], c: 1 },
+        { levelId: 12, q: '¿Qué es el Congreso de la República?', o: ['Un grupo de jueces', 'Órgano que representa a la nación y hace las leyes', 'El despacho del presidente', 'Una empresa pública'], c: 1 },
+        { levelId: 12, q: '¿Cuántos congresistas hay en Perú?', o: ['100', '120', '130', '150'], c: 2 },
+        { levelId: 12, q: '¿Cuál es la función de fiscalización del Congreso?', o: ['Cobrar impuestos', 'Controlar y vigilar los actos del gobierno y autoridades', 'Hacer obras públicas', 'Nombrar alcaldes'], c: 1 },
+        { levelId: 12, q: '¿Cuánto dura el periodo de un congresista?', o: ['4 años', '5 años', '6 años', '3 años'], c: 1 },
+        { levelId: 12, q: '¿Cómo se eligen los congresistas?', o: ['Por el Presidente', 'Por voto popular en elecciones generales', 'Por sorteo', 'Por el Alcalde'], c: 1 },
+        { levelId: 13, q: '¿Qué es una ley?', o: ['Un consejo', 'Norma obligatoria establecida por la autoridad para regular la convivencia', 'Una opinión del presidente', 'Un deseo ciudadano'], c: 1 },
+        { levelId: 13, q: '¿Cuál es el proceso para que una ley exista?', o: ['El presidente la escribe solo', 'Iniciativa, debate en comisiones, aprobación en pleno y promulgación', 'Se vota en Facebook', 'Solo se publica'], c: 1 },
+        { levelId: 13, q: '¿Quién promulga las leyes en Perú?', o: ['El Alcalde', 'El Presidente de la República', 'El Juez', 'El Comisario'], c: 1 },
+        { levelId: 13, q: '¿Qué es la Constitución Política?', o: ['Un libro de historia', 'La ley fundamental de un estado que define derechos y deberes', 'Un manual de funciones', 'Un contrato privado'], c: 1 },
+        { levelId: 13, q: '¿Qué pasa si una ley va en contra de la Constitución?', o: ['No pasa nada', 'Es declarada inconstitucional y pierde validez', 'Se cambia la constitución', 'Se ignora la constitución'], c: 1 },
+        { levelId: 14, q: '¿Qué es el voto informado?', o: ['Votar por el más famoso', 'Votar conociendo propuestas, candidatos y sus antecedentes', 'Votar por quien te regala cosas', 'Votar en blanco siempre'], c: 1 },
+        { levelId: 14, q: '¿Dónde puedes encontrar información sobre los candidatos?', o: ['Solo en volantes', 'Portal del JNE (Voto Informado), planes de gobierno y noticias serias', 'En chismes de redes sociales', 'Preguntando a amigos'], c: 1 },
+        { levelId: 14, q: '¿Por qué es importante leer el plan de gobierno?', o: ['Para saber qué promesas se cumplirán y cómo se harán', 'No es importante', 'Para ver las fotos', 'Para ver el logo'], c: 0 },
+        { levelId: 14, q: '¿Qué es una tacha a un candidato?', o: ['Un premio', 'Cuestionamiento legal para impedir que un candidato postule por no cumplir requisitos', 'Una multa', 'Un aplauso'], c: 1 },
+        { levelId: 14, q: '¿Cuál es la consecuencia de un voto no informado?', o: ['Ninguna', 'Elegir autoridades no aptas que pueden afectar el desarrollo del país', 'Que gane tu favorito', 'Que se repitan las elecciones'], c: 1 },
+        { levelId: 15, q: '¿Qué significa ser ciudadano?', o: ['Solo vivir en un lugar', 'Tener derechos y deberes en una comunidad política organizada', 'Tener DNI solamente', 'Saber hablar español'], c: 1 },
+        { levelId: 15, q: '¿A qué edad se adquiere la ciudadanía plena en Perú?', o: ['16 años', '18 años', '21 años', '15 años'], c: 1 },
+        { levelId: 15, q: '¿Cuál es un deber ciudadano fundamental?', o: ['No trabajar', 'Respetar leyes, pagar impuestos y participar en la vida pública', 'Solo viajar', 'Solo estudiar'], c: 1 },
+        { levelId: 15, q: '¿Qué es la ética pública?', o: ['Hacer lo que uno quiera', 'Actuar con honestidad y transparencia en el servicio a la comunidad', 'Cobrar por todo', 'Ser famoso'], c: 1 },
+        { levelId: 15, q: '¿Cómo puedes ejercer tu ciudadanía a diario?', o: ['No haciendo nada', 'Respetando normas, cuidando espacios públicos y participando activamente', 'Solo durmiendo', 'Solo comprando cosas'], c: 1 }
     ]
 };
 
-// ========== ESTADO DEL JUEGO ==========
 let currentUser = null;
 let currentLevel = null;
-let currentLevelQuizzes = []; // Copia local de las preguntas del nivel
+let currentLevelQuizzes = [];
 let currentQuestionIndex = 0;
 let correctAnswers = 0;
 let lives = 3;
 let shuffledOptions = [];
 let livesUpdateInterval = null;
 
-// ========== FUNCIONES DE AUTENTICACIÓN ==========
-
-function toggleForm(event) {
-    event.preventDefault();
-    const loginForm = document.getElementById('loginForm');
-    const registerForm = document.getElementById('registerForm');
-    const errorDiv = document.getElementById('errorMessage');
-    errorDiv.style.display = 'none';
-    
-    if (loginForm.style.display === 'none') {
-        loginForm.style.display = 'block';
-        registerForm.style.display = 'none';
-    } else {
-        loginForm.style.display = 'none';
-        registerForm.style.display = 'block';
-    }
-}
-
 async function registerUser() {
     const username = document.getElementById('newUsername').value.trim();
     const password = document.getElementById('newPassword').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
+    const confirmPass = document.getElementById('confirmPassword').value;
 
-    if (!username || !password || !confirmPassword) {
+    if (!username || !password) {
         showError('📋 Completa todos los campos');
         return;
     }
-
-    if (password !== confirmPassword) {
+    if (password.length < 4) {
+        showError('🔐 La contraseña debe tener al menos 4 caracteres');
+        return;
+    }
+    if (password !== confirmPass) {
         showError('❌ Las contraseñas no coinciden');
         return;
     }
@@ -258,51 +183,32 @@ async function registerUser() {
     try {
         let users = JSON.parse(localStorage.getItem('prepol_users') || '{}');
         
-        // Verificar en Firebase si el usuario realmente existe
         if (db) {
             try {
                 const userSnap = await db.collection('users').doc(username).get();
                 if (userSnap.exists()) {
                     showError('⚠️ Este usuario ya existe');
                     return;
-                } else {
-                    // Si no existe en Firebase, lo eliminamos del localStorage local por si acaso
-                    if (users[username]) {
-                        delete users[username];
-                        localStorage.setItem('prepol_users', JSON.stringify(users));
-                    }
                 }
-            } catch (e) { 
-                console.log("Error al verificar usuario en Firebase");
-                // Si falla Firebase, confiamos en localStorage
-                if (users[username]) {
-                    showError('⚠️ Este usuario ya existe');
-                    return;
-                }
-            }
-        } else if (users[username]) {
+            } catch (e) {}
+        }
+
+        if (users[username]) {
             showError('⚠️ Este usuario ya existe');
             return;
         }
 
         const newUser = {
-            username: username,
-            password: password,
-            soles: 100,
-            rank: '👤 Ciudadano',
-            completedLevels: [],
-            availableLives: LIVES_MAX,
-            lastLivesLostTime: null,
-            createdAt: new Date().toISOString()
+            username, password, soles: 100, rank: '👤 Ciudadano',
+            completedLevels: [], availableLives: LIVES_MAX,
+            lastLivesLostTime: null, createdAt: new Date().toISOString()
         };
 
         users[username] = newUser;
         localStorage.setItem('prepol_users', JSON.stringify(users));
         
         if (db) {
-            try {
-                await db.collection('users').doc(username).set(newUser);
-            } catch (e) { console.log("Firebase no disponible"); }
+            db.collection('users').doc(username).set(newUser).catch(() => {});
         }
 
         showError('✅ ¡Cuenta creada exitosamente!', 'success');
@@ -333,28 +239,19 @@ async function loginUser() {
         let users = JSON.parse(localStorage.getItem('prepol_users') || '{}');
         let userData = users[username];
 
-        // Intentar siempre obtener los datos más frescos de Firebase si hay conexión
         if (db) {
             try {
                 const userSnap = await db.collection('users').doc(username).get();
                 if (userSnap.exists()) {
                     userData = userSnap.data();
-                    // Actualizar caché local
                     users[username] = userData;
                     localStorage.setItem('prepol_users', JSON.stringify(users));
                 }
-            } catch (e) { 
-                console.log("Usando datos locales (Firebase no disponible)"); 
-            }
+            } catch (e) {}
         }
 
-        if (!userData) {
-            showError('👤 Usuario no encontrado');
-            return;
-        }
-        
-        if (userData.password !== password) {
-            showError('🔐 Contraseña incorrecta');
+        if (!userData || userData.password !== password) {
+            showError(userData ? '🔐 Contraseña incorrecta' : '👤 Usuario no encontrado');
             return;
         }
 
@@ -382,56 +279,49 @@ function logout() {
 
 async function deleteAccount() {
     if (!currentUser) return;
-    
-    const confirmDelete = confirm("¿Estás seguro de que quieres borrar tu cuenta permanentemente? Esta acción no se puede deshacer.");
-    if (!confirmDelete) return;
+    if (!confirm("¿Borrar cuenta permanentemente?")) return;
 
     const username = currentUser.username;
-
     try {
-        // 1. Borrar de Firebase
-        if (db) {
-            await db.collection('users').doc(username).delete();
-        }
-
-        // 2. Borrar del LocalStorage
+        if (db) db.collection('users').doc(username).delete().catch(() => {});
         let users = JSON.parse(localStorage.getItem('prepol_users') || '{}');
         delete users[username];
         localStorage.setItem('prepol_users', JSON.stringify(users));
-
-        // 3. Salir
-        alert("Tu cuenta ha sido eliminada correctamente.");
         logout();
-    } catch (error) {
-        console.error("Error al borrar cuenta:", error);
-        alert("Hubo un error al intentar borrar la cuenta. Por favor intenta de nuevo.");
-    }
+    } catch (error) {}
 }
-
-// ========== FUNCIONES DE DATOS ==========
 
 function updateUI() {
     if (!currentUser) return;
-    document.getElementById('usernameDisplay').textContent = currentUser.username;
-    document.getElementById('solesDisplay').textContent = currentUser.soles;
-    document.getElementById('rankDisplay').textContent = currentUser.rank;
-    document.getElementById('perfilUsername').textContent = currentUser.username;
-    document.getElementById('perfilSoles').textContent = currentUser.soles;
-    document.getElementById('perfilRank').textContent = currentUser.rank;
-    document.getElementById('perfilLevels').textContent = currentUser.completedLevels.length;
+    const elements = {
+        'usernameDisplay': currentUser.username,
+        'solesDisplay': currentUser.soles,
+        'rankDisplay': currentUser.rank,
+        'perfilUsername': currentUser.username,
+        'perfilSoles': currentUser.soles,
+        'perfilRank': currentUser.rank,
+        'perfilLevels': currentUser.completedLevels.length
+    };
     
-    // Actualizar vidas disponibles
+    for (const [id, val] of Object.entries(elements)) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+    }
+    
     const availableLives = getAvailableLives(currentUser);
-    document.getElementById('livesAvailableDisplay').textContent = availableLives;
+    const livesEl = document.getElementById('livesAvailableDisplay');
+    if (livesEl) livesEl.textContent = availableLives;
 
-    // Actualizar contador si no hay vidas
     const timerContainer = document.getElementById('livesTimerContainer');
-    if (availableLives === 0) {
-        timerContainer.style.display = 'block';
-        const timeRemaining = getTimeUntilLivesRegenerate(currentUser);
-        document.getElementById('livesCountdown').textContent = formatTime(timeRemaining);
-    } else {
-        timerContainer.style.display = 'none';
+    if (timerContainer) {
+        if (availableLives === 0) {
+            timerContainer.style.display = 'block';
+            const timeRemaining = getTimeUntilLivesRegenerate(currentUser);
+            const countdownEl = document.getElementById('livesCountdown');
+            if (countdownEl) countdownEl.textContent = formatTime(timeRemaining);
+        } else {
+            timerContainer.style.display = 'none';
+        }
     }
 }
 
@@ -439,16 +329,15 @@ function updateLevelStates() {
     if (!currentUser) return;
     const availableLives = getAvailableLives(currentUser);
     
-    for (let i = 0; i < gameData.levels.length; i++) {
+    gameData.levels.forEach((level, i) => {
         const levelCard = document.getElementById(`nivel-${i}`);
-        if (!levelCard) continue;
+        if (!levelCard) return;
 
-        // Si no hay vidas, bloquear todos los niveles
         if (availableLives === 0) {
             levelCard.classList.add('locked');
             levelCard.style.opacity = '0.5';
             levelCard.style.cursor = 'not-allowed';
-            continue;
+            return;
         }
 
         levelCard.style.opacity = '1';
@@ -462,41 +351,28 @@ function updateLevelStates() {
 
         if (currentUser.completedLevels.includes(i)) {
             levelCard.classList.add('completed');
+        } else {
+            levelCard.classList.remove('completed');
         }
-    }
+    });
 }
 
 async function saveProgress() {
     if (!currentUser) return;
-    
-    // Actualizar localStorage primero para respuesta rápida
     let users = JSON.parse(localStorage.getItem('prepol_users') || '{}');
     users[currentUser.username] = currentUser;
     localStorage.setItem('prepol_users', JSON.stringify(users));
 
-    // Sincronizar con Firebase (Fuente de verdad)
     if (db) {
-        try {
-            // Usamos set con merge: true para asegurar que el documento exista o se actualice correctamente
-            await db.collection('users').doc(currentUser.username).set({
-                username: currentUser.username,
-                password: currentUser.password, // Mantener contraseña sincronizada
-                soles: currentUser.soles,
-                rank: currentUser.rank,
-                completedLevels: currentUser.completedLevels,
-                availableLives: currentUser.availableLives,
-                lastLivesLostTime: currentUser.lastLivesLostTime,
-                lastUpdated: new Date().toISOString()
-            }, { merge: true });
-        } catch (e) { 
-            console.error("Error sincronizando con Firebase:", e); 
-        }
+        db.collection('users').doc(currentUser.username).set({
+            ...currentUser,
+            lastUpdated: new Date().toISOString()
+        }, { merge: true }).catch(() => {});
     }
 }
 
 function startLivesUpdateInterval() {
     if (livesUpdateInterval) clearInterval(livesUpdateInterval);
-    
     livesUpdateInterval = setInterval(() => {
         if (currentUser) {
             const availableLives = getAvailableLives(currentUser);
@@ -508,27 +384,23 @@ function startLivesUpdateInterval() {
                 saveProgress();
                 updateUI();
                 updateLevelStates();
-                showError('❤️ ¡Tus vidas se han regenerado!', 'success');
             } else if (availableLives === 0) {
-                // Actualizar solo el contador en la UI cada segundo
                 const countdownEl = document.getElementById('livesCountdown');
-                if (countdownEl) {
-                    countdownEl.textContent = formatTime(timeRemaining);
-                }
+                if (countdownEl) countdownEl.textContent = formatTime(timeRemaining);
             }
         }
     }, 1000);
 }
 
-
-
 function showPage(pageId) {
     document.querySelectorAll('.page').forEach(page => page.style.display = 'none');
-    document.getElementById(pageId).style.display = 'block';
+    const target = document.getElementById(pageId);
+    if (target) target.style.display = 'block';
 }
 
 function showError(message, type = 'error') {
     const errorDiv = document.getElementById('errorMessage');
+    if (!errorDiv) return;
     errorDiv.textContent = message;
     errorDiv.style.display = 'block';
     errorDiv.className = 'error-message ' + (type === 'success' ? 'success' : '');
@@ -539,14 +411,10 @@ function backToDashboard() {
     showPage('dashboardPage');
 }
 
-
-
 function startLevel(levelId) {
     const availableLives = getAvailableLives(currentUser);
-    
     if (availableLives === 0) {
-        const timeRemaining = getTimeUntilLivesRegenerate(currentUser);
-        showError(`❌ No tienes vidas disponibles. Vuelven en: ${formatTime(timeRemaining)}`);
+        showError(`❌ No tienes vidas disponibles.`);
         return;
     }
 
@@ -555,15 +423,11 @@ function startLevel(levelId) {
         return;
     }
 
-    // Obtener preguntas del nivel y mezclarlas
     const quizzes = gameData.quizzes.filter(q => q.levelId === levelId);
-    if (quizzes.length === 0) {
-        showError('🚧 Este nivel aún no tiene preguntas disponibles');
-        return;
-    }
+    if (quizzes.length === 0) return;
 
     currentLevel = gameData.levels[levelId];
-    currentLevelQuizzes = shuffleArray([...quizzes]); // Copia mezclada para el nivel
+    currentLevelQuizzes = shuffleArray([...quizzes]);
     currentQuestionIndex = 0;
     correctAnswers = 0;
     lives = 3;
@@ -588,32 +452,29 @@ function showQuestion() {
     const optionsContainer = document.getElementById('optionsContainer');
     optionsContainer.innerHTML = '';
 
-    // Aleatorizar opciones
     shuffledOptions = shuffleArray(quiz.o.map((option, index) => ({ text: option, originalIndex: index })));
 
-    shuffledOptions.forEach((option, index) => {
+    shuffledOptions.forEach((option) => {
         const button = document.createElement('button');
         button.className = 'option-btn';
         button.textContent = option.text;
         button.onclick = () => {
-                if (option.originalIndex === quiz.c) {
-                    correctAnswers++;
-                    document.getElementById('correctDisplay').textContent = correctAnswers;
-                    currentQuestionIndex++;
-                    showQuestion();
+            if (option.originalIndex === quiz.c) {
+                correctAnswers++;
+                document.getElementById('correctDisplay').textContent = correctAnswers;
+                currentQuestionIndex++;
+                showQuestion();
+            } else {
+                lives--;
+                document.getElementById('livesDisplay').textContent = lives;
+                if (lives <= 0) {
+                    finishLevel(false);
                 } else {
-                    lives--;
-                    document.getElementById('livesDisplay').textContent = lives;
-                    
-                    if (lives <= 0) {
-                        finishLevel(false);
-                    } else {
-                        const failedQuiz = currentLevelQuizzes.splice(currentQuestionIndex, 1)[0];
-                        currentLevelQuizzes.push(failedQuiz);
-                        // No incrementamos currentQuestionIndex, el splice ya trajo la siguiente pregunta al índice actual
-                        showQuestion();
-                    }
+                    const failedQuiz = currentLevelQuizzes.splice(currentQuestionIndex, 1)[0];
+                    currentLevelQuizzes.push(failedQuiz);
+                    showQuestion();
                 }
+            }
         };
         optionsContainer.appendChild(button);
     });
@@ -623,66 +484,42 @@ async function finishLevel(success) {
     if (success) {
         currentUser.soles += currentLevel.soles;
         currentUser.rank = getRankByPoints(currentUser.soles);
-        
         if (!currentUser.completedLevels.includes(currentLevel.id)) {
             currentUser.completedLevels.push(currentLevel.id);
         }
-        
-        // Guardar progreso antes de mostrar el alert para asegurar persistencia
         await saveProgress();
         updateUI();
         updateLevelStates();
-        alert(`🎉 ¡Felicidades! Ganaste ${currentLevel.soles} Soles\n💰 Total: ${currentUser.soles} Soles\n🏅 Rango: ${currentUser.rank}`);
+        alert(`🎉 ¡Ganaste ${currentLevel.soles} Soles!`);
     } else {
-        // Perder vidas
         currentUser.availableLives = 0;
         currentUser.lastLivesLostTime = new Date().getTime();
-        
-        // Guardar inmediatamente en Firebase y LocalStorage para evitar trampas al recargar
         await saveProgress();
         updateUI();
         updateLevelStates();
-        
-        const timeRemaining = getTimeUntilLivesRegenerate(currentUser);
-        alert(`💔 Se acabaron las vidas.\n\n❤️ Tus vidas se regenerarán en: ${formatTime(timeRemaining)}\n\nInténtalo de nuevo en ${timeRemaining} segundos.`);
+        alert(`💔 Se acabaron las vidas.`);
     }
     showPage('dashboardPage');
 }
 
-
 window.onload = async () => {
     const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
-        // Intentar obtener datos actualizados de Firebase
+        let users = JSON.parse(localStorage.getItem('prepol_users') || '{}');
+        currentUser = users[savedUser];
+
         if (db) {
             try {
                 const userSnap = await db.collection('users').doc(savedUser).get();
                 if (userSnap.exists()) {
                     currentUser = userSnap.data();
-                    let users = JSON.parse(localStorage.getItem('prepol_users') || '{}');
                     users[savedUser] = currentUser;
                     localStorage.setItem('prepol_users', JSON.stringify(users));
-                } else {
-                    let users = JSON.parse(localStorage.getItem('prepol_users') || '{}');
-                    currentUser = users[savedUser];
                 }
-            } catch (e) {
-                console.warn("Firebase no respondió a tiempo, usando datos locales");
-                let users = JSON.parse(localStorage.getItem('prepol_users') || '{}');
-                currentUser = users[savedUser];
-            }
-        } else {
-            let users = JSON.parse(localStorage.getItem('prepol_users') || '{}');
-            currentUser = users[savedUser];
+            } catch (e) {}
         }
 
         if (currentUser) {
-            // Inicializar vidas si no existen
-            if (currentUser.availableLives === undefined) {
-                currentUser.availableLives = LIVES_MAX;
-                currentUser.lastLivesLostTime = null;
-            }
-            
             updateUI();
             updateLevelStates();
             showPage('dashboardPage');
