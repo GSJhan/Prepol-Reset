@@ -1,3 +1,12 @@
+// ========== INICIALIZACIÓN DE FIREBASE ==========
+// Inicializar Firebase
+if (typeof firebase !== 'undefined') {
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.firestore();
+} else {
+    console.error("Firebase SDK no cargado. Revisa index.html");
+}
+
 // ========== MODO DE EMERGENCIA (LOCAL STORAGE) ==========
 const USE_LOCAL_STORAGE = true;
 
@@ -604,6 +613,7 @@ async function finishLevel(success) {
             currentUser.completedLevels.push(currentLevel.id);
         }
         
+        // Guardar progreso antes de mostrar el alert para asegurar persistencia
         await saveProgress();
         updateUI();
         updateLevelStates();
@@ -612,6 +622,8 @@ async function finishLevel(success) {
         // Perder vidas
         currentUser.availableLives = 0;
         currentUser.lastLivesLostTime = new Date().getTime();
+        
+        // Guardar inmediatamente en Firebase y LocalStorage para evitar trampas al recargar
         await saveProgress();
         updateUI();
         updateLevelStates();
@@ -623,15 +635,37 @@ async function finishLevel(success) {
 }
 
 // Inicialización
-window.onload = () => {
+window.onload = async () => {
     const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
-        let users = JSON.parse(localStorage.getItem('prepol_users') || '{}');
-        if (users[savedUser]) {
+        // Intentar obtener datos actualizados de Firebase
+        if (typeof db !== 'undefined' && db !== null) {
+            try {
+                const userSnap = await db.collection('users').doc(savedUser).get();
+                if (userSnap.exists()) {
+                    currentUser = userSnap.data();
+                    // Actualizar localStorage
+                    let users = JSON.parse(localStorage.getItem('prepol_users') || '{}');
+                    users[savedUser] = currentUser;
+                    localStorage.setItem('prepol_users', JSON.stringify(users));
+                } else {
+                    // Si no está en Firebase, usar local
+                    let users = JSON.parse(localStorage.getItem('prepol_users') || '{}');
+                    currentUser = users[savedUser];
+                }
+            } catch (e) {
+                console.log("Error al cargar desde Firebase, usando local");
+                let users = JSON.parse(localStorage.getItem('prepol_users') || '{}');
+                currentUser = users[savedUser];
+            }
+        } else {
+            let users = JSON.parse(localStorage.getItem('prepol_users') || '{}');
             currentUser = users[savedUser];
-            
+        }
+
+        if (currentUser) {
             // Inicializar vidas si no existen
-            if (!currentUser.availableLives) {
+            if (currentUser.availableLives === undefined) {
                 currentUser.availableLives = LIVES_MAX;
                 currentUser.lastLivesLostTime = null;
             }
