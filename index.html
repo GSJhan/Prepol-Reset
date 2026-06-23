@@ -19,24 +19,24 @@
                     <p class="login-subtitle">Aprende Cívica Jugando</p>
                 </div>
 
-                <div id="loginForm" class="form-group">
-                    <div class="form-title">Ingresar</div>
+                <form id="loginForm" class="form-group" onsubmit="event.preventDefault(); loginUser();">
+                    <div class="form-title">🔐 Ingresar</div>
                     <input type="text" id="username" placeholder="Usuario" class="input-field" required>
                     <input type="password" id="password" placeholder="Contraseña" class="input-field" required>
-                    <button onclick="loginUser( )" class="btn-primary btn-full">Ingresar</button>
+                    <button type="submit" class="btn-primary btn-full">Ingresar</button>
                     <p class="toggle-form">¿No tienes cuenta? <a href="javascript:void(0)" onclick="toggleForm(event)">Registrarse</a></p>
-                </div>
+                </form>
 
-                <div id="registerForm" class="form-group" style="display: none;">
-                    <div class="form-title">Crear Cuenta</div>
+                <form id="registerForm" class="form-group" style="display: none;" onsubmit="event.preventDefault(); registerUser();">
+                    <div class="form-title">📝 Crear Cuenta</div>
                     <input type="text" id="newUsername" placeholder="Nuevo Usuario" class="input-field" required>
                     <input type="password" id="newPassword" placeholder="Contraseña (mín. 4 caracteres)" class="input-field" required>
                     <input type="password" id="confirmPassword" placeholder="Confirmar Contraseña" class="input-field" required>
-                    <button onclick="registerUser()" class="btn-primary btn-full">Crear Cuenta</button>
+                    <button type="submit" class="btn-primary btn-full">Crear Cuenta</button>
                     <p class="toggle-form">¿Ya tienes cuenta? <a href="javascript:void(0)" onclick="toggleForm(event)">Ingresar</a></p>
-                </div>
+                </form>
 
-                <div id="errorMessage" class="error-message" style="display: none;"></div>
+                <div id="errorMessage" class="error-message" style="display: none;" role="alert"></div>
             </div>
         </div>
     </div>
@@ -255,7 +255,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
 
-    <!-- FIREBASE CONFI -->
+    <!-- FIREBASE CONFIG -->
     <script src="js/firebase-config.js"></script>
 
     <!-- APP JS -->
