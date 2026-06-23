@@ -1,22 +1,6 @@
-// ========== INICIALIZAR FIREBASE ==========
-// La configuración se carga desde firebase-config.js
-// Las referencias a auth y db ya están disponibles globalmente
-
-// Esperar a que Firebase esté completamente listo
-function waitForFirebase(callback, attempts = 0) {
-    if (typeof db !== 'undefined') {
-        console.log('✅ Firebase inicializado correctamente');
-        callback();
-    } else if (attempts < 50) {
-        setTimeout(() => waitForFirebase(callback, attempts + 1), 100);
-    } else {
-        console.error('❌ Error: Firebase no se inicializó en el tiempo esperado');
-    }
-}
-
-waitForFirebase(() => {
-    console.log('✅ Sistema listo para usar');
-});
+// ========== MODO DE EMERGENCIA (LOCAL STORAGE) ==========
+// Si Firebase falla, el juego funcionará localmente
+const USE_LOCAL_STORAGE = true; // Forzar uso local si hay problemas de config
 
 // ========== DATOS DEL JUEGO ==========
 const gameData = {
@@ -61,7 +45,7 @@ function toggleForm(event) {
     const loginForm = document.getElementById('loginForm');
     const registerForm = document.getElementById('registerForm');
     const errorDiv = document.getElementById('errorMessage');
-    errorDiv.style.display = 'none'; // Limpiar errores previos
+    errorDiv.style.display = 'none';
     
     if (loginForm.style.display === 'none') {
         loginForm.style.display = 'block';
@@ -82,86 +66,50 @@ async function registerUser() {
         return;
     }
 
-    if (username.length < 3) {
-        showError('👤 El usuario debe tener al menos 3 caracteres');
-        return;
-    }
-
-    if (password.length < 4) {
-        showError('🔐 La contraseña debe tener al menos 4 caracteres');
-        return;
-    }
-
     if (password !== confirmPassword) {
         showError('❌ Las contraseñas no coinciden');
         return;
     }
 
-    // Validar caracteres especiales en usuario
-    if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
-        showError('👤 El usuario solo puede contener letras, números, guiones y guiones bajos');
-        return;
-    }
-
     try {
-        // Validar que Firebase esté inicializado
-        if (db === null || typeof db === 'undefined') {
-            showError('⚠️ Firebase no está configurado correctamente. Verifica firebase-config.js');
-            console.error('Firebase no inicializado');
+        // MODO LOCAL
+        let users = JSON.parse(localStorage.getItem('prepol_users') || '{}');
+        if (users[username]) {
+            showError('⚠️ Este usuario ya existe');
             return;
         }
 
-        console.log('Intentando registrar usuario:', username);
-        
-        // Verificar si el usuario ya existe
-        const userRef = db.collection('users').doc(username);
-        const userSnap = await userRef.get();
-        
-        if (userSnap.exists()) {
-            showError('⚠️ Este usuario ya existe. Intenta con otro nombre');
-            return;
-        }
-
-        // Crear el nuevo usuario
-        await userRef.set({
+        const newUser = {
             username: username,
-            password: password, // Nota: En producción, esto debería estar hasheado
+            password: password,
             soles: 100,
             rank: 'Ciudadano',
             completedLevels: [],
             createdAt: new Date().toISOString()
-        });
+        };
+
+        users[username] = newUser;
+        localStorage.setItem('prepol_users', JSON.stringify(users));
         
-        console.log('✅ Usuario registrado:', username);
-        showError('✅ ¡Cuenta creada exitosamente! Iniciando sesión...', 'success');
+        // Intentar guardar en Firebase si está disponible
+        if (typeof db !== 'undefined' && db !== null) {
+            try {
+                await db.collection('users').doc(username).set(newUser);
+            } catch (e) { console.log("Firebase no disponible, guardado solo local"); }
+        }
 
-        // Limpiar formulario
-        document.getElementById('newUsername').value = '';
-        document.getElementById('newPassword').value = '';
-        document.getElementById('confirmPassword').value = '';
-
-        currentUser = { username: username };
+        showError('✅ ¡Cuenta creada exitosamente!', 'success');
+        currentUser = newUser;
         localStorage.setItem('currentUser', username);
         
         setTimeout(() => {
-            loadUserData();
+            updateUI();
+            updateLevelStates();
             showPage('dashboardPage');
         }, 1000);
+
     } catch (error) {
-        console.error('Error al registrar:', error);
-        let errorMessage = '❌ Error al registrar';
-        
-        if (error.message) {
-            if (error.message.includes('permission')) {
-                errorMessage = '🔒 Permiso denegado. Verifica las reglas de Firestore';
-            } else if (error.message.includes('network')) {
-                errorMessage = '🌐 Error de conexión. Verifica tu internet';
-            } else {
-                errorMessage = error.message;
-            }
-        }
-        
-        showError(errorMessage);
+        showError('❌ Error al registrar');
     }
 }
 
@@ -175,173 +123,56 @@ async function loginUser() {
     }
 
     try {
-        // Validar que Firebase esté inicializado
-        if (db === null || typeof db === 'undefined') {
-            showError('⚠️ Firebase no está configurado correctamente. Verifica firebase-config.js');
-            console.error('Firebase no inicializado');
-            return;
+        let users = JSON.parse(localStorage.getItem('prepol_users') || '{}');
+        let userData = users[username];
+
+        // Si no está local, intentar Firebase
+        if (!userData && typeof db !== 'undefined' && db !== null) {
+            try {
+                const userSnap = await db.collection('users').doc(username).get();
+                if (userSnap.exists()) {
+                    userData = userSnap.data();
+                    // Sincronizar localmente
+                    users[username] = userData;
+                    localStorage.setItem('prepol_users', JSON.stringify(users));
+                }
+            } catch (e) { console.log("Firebase no disponible"); }
         }
 
-        console.log('Intentando iniciar sesión:', username);
-        
-        // Buscar el usuario en Firestore
-        const userRef = db.collection('users').doc(username);
-        const userSnap = await userRef.get();
-        
-        if (!userSnap.exists()) {
-            showError('👤 Usuario no encontrado. ¿Deseas crear una cuenta?');
+        if (!userData) {
+            showError('👤 Usuario no encontrado');
             return;
         }
         
-        const userData = userSnap.data();
-        
-        // Verificar contraseña
         if (userData.password !== password) {
-            showError('🔐 Contraseña incorrecta. Intenta de nuevo');
+            showError('🔐 Contraseña incorrecta');
             return;
         }
 
-        console.log('✅ Sesión iniciada:', username);
-        showError('✅ ¡Bienvenido ' + username + '!', 'success');
-
-        // Limpiar formulario
-        document.getElementById('username').value = '';
-        document.getElementById('password').value = '';
-
-        currentUser = { username: username };
+        showError('✅ ¡Bienvenido!', 'success');
+        currentUser = userData;
         localStorage.setItem('currentUser', username);
         
         setTimeout(() => {
-            loadUserData();
+            updateUI();
+            updateLevelStates();
             showPage('dashboardPage');
         }, 500);
     } catch (error) {
-        console.error('Error al ingresar:', error);
-        let errorMessage = '❌ Error al iniciar sesión';
-        
-        if (error.message) {
-            if (error.message.includes('permission')) {
-                errorMessage = '🔒 Permiso denegado. Verifica las reglas de Firestore';
-            } else if (error.message.includes('network')) {
-                errorMessage = '🌐 Error de conexión. Verifica tu internet';
-            } else {
-                errorMessage = error.message;
-            }
-        }
-        
-        showError(errorMessage);
+        showError('❌ Error al iniciar sesión');
     }
 }
 
-async function logout() {
-    try {
-        currentUser = null;
-        localStorage.removeItem('currentUser');
-        document.getElementById('username').value = '';
-        document.getElementById('password').value = '';
-        document.getElementById('newUsername').value = '';
-        document.getElementById('newPassword').value = '';
-        document.getElementById('confirmPassword').value = '';
-        showPage('loginPage');
-    } catch (error) {
-        console.error('Error al cerrar sesión:', error);
-    }
+function logout() {
+    currentUser = null;
+    localStorage.removeItem('currentUser');
+    showPage('loginPage');
 }
 
 // ========== FUNCIONES DE DATOS ==========
 
-async function loadUserData() {
-    if (!currentUser) return;
-
-    try {
-        if (typeof db === 'undefined') {
-            console.error('Firebase no está disponible');
-            return;
-        }
-
-        const userRef = db.collection('users').doc(currentUser.username);
-        const userSnap = await userRef.get();
-        
-        if (userSnap.exists()) {
-            const data = userSnap.data();
-            currentUser.soles = data.soles || 100;
-            currentUser.rank = data.rank || 'Ciudadano';
-            currentUser.completedLevels = data.completedLevels || [];
-
-            updateUI();
-            updateLevelStates();
-        }
-    } catch (error) {
-        console.error('Error al cargar datos:', error);
-    }
-}
-
-async function updateUserData() {
-    if (!currentUser) return;
-
-    try {
-        if (typeof db === 'undefined') {
-            console.error('Firebase no está disponible');
-            return;
-        }
-
-        await db.collection('users').doc(currentUser.username).update({
-            soles: currentUser.soles,
-            rank: currentUser.rank,
-            completedLevels: currentUser.completedLevels
-        });
-    } catch (error) {
-        console.error('Error al actualizar datos:', error);
-    }
-}
-
-async function loadLeaderboard() {
-    try {
-        if (typeof db === 'undefined') {
-            console.error('Firebase no está disponible');
-            return;
-        }
-
-        const snapshot = await db.collection('users')
-            .orderBy('soles', 'desc')
-            .limit(10)
-            .get();
-
-        const leaderboardBody = document.getElementById('leaderboardBody');
-        leaderboardBody.innerHTML = '';
-
-        let position = 1;
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${position}</td>
-                <td>${data.username}</td>
-                <td>${data.soles}</td>
-                <td>${data.rank}</td>
-            `;
-            leaderboardBody.appendChild(row);
-            position++;
-        });
-    } catch (error) {
-        console.error('Error al cargar leaderboard:', error);
-    }
-}
-
-// ========== FUNCIONES DE UI ==========
-
-function showPage(pageId) {
-    document.querySelectorAll('.page').forEach(page => {
-        page.style.display = 'none';
-    });
-    document.getElementById(pageId).style.display = 'block';
-
-    if (pageId === 'leaderboardPage') {
-        loadLeaderboard();
-    }
-}
-
 function updateUI() {
+    if (!currentUser) return;
     document.getElementById('usernameDisplay').textContent = currentUser.username;
     document.getElementById('solesDisplay').textContent = currentUser.soles;
     document.getElementById('rankDisplay').textContent = currentUser.rank;
@@ -352,13 +183,12 @@ function updateUI() {
 }
 
 function updateLevelStates() {
+    if (!currentUser) return;
     for (let i = 0; i < gameData.levels.length; i++) {
         const levelCard = document.getElementById(`nivel-${i}`);
         if (!levelCard) continue;
 
-        if (i === 0) {
-            levelCard.classList.remove('locked');
-        } else if (currentUser.completedLevels.includes(i - 1)) {
+        if (i === 0 || currentUser.completedLevels.includes(i - 1)) {
             levelCard.classList.remove('locked');
         } else {
             levelCard.classList.add('locked');
@@ -370,33 +200,46 @@ function updateLevelStates() {
     }
 }
 
+async function saveProgress() {
+    if (!currentUser) return;
+    
+    // Guardar Local
+    let users = JSON.parse(localStorage.getItem('prepol_users') || '{}');
+    users[currentUser.username] = currentUser;
+    localStorage.setItem('prepol_users', JSON.stringify(users));
+
+    // Intentar Firebase
+    if (typeof db !== 'undefined' && db !== null) {
+        try {
+            await db.collection('users').doc(currentUser.username).update({
+                soles: currentUser.soles,
+                rank: currentUser.rank,
+                completedLevels: currentUser.completedLevels
+            });
+        } catch (e) { console.log("Error sincronizando con Firebase"); }
+    }
+}
+
+// ========== FUNCIONES DE UI ==========
+
+function showPage(pageId) {
+    document.querySelectorAll('.page').forEach(page => page.style.display = 'none');
+    document.getElementById(pageId).style.display = 'block';
+}
+
 function showError(message, type = 'error') {
     const errorDiv = document.getElementById('errorMessage');
     errorDiv.textContent = message;
     errorDiv.style.display = 'block';
-    
-    // Cambiar estilo según el tipo de mensaje
-    if (type === 'success') {
-        errorDiv.style.background = 'rgba(34, 197, 94, 0.1)';
-        errorDiv.style.borderColor = '#22c55e';
-        errorDiv.style.color = '#22c55e';
-    } else {
-        errorDiv.style.background = 'rgba(239, 68, 68, 0.1)';
-        errorDiv.style.borderColor = '#ef4444';
-        errorDiv.style.color = '#ef4444';
-    }
-    
-    console.log((type === 'success' ? '✅' : '❌') + ' Mensaje mostrado:', message);
-    setTimeout(() => {
-        errorDiv.style.display = 'none';
-    }, type === 'success' ? 3000 : 5000);
+    errorDiv.className = 'error-message ' + (type === 'success' ? 'success' : '');
+    setTimeout(() => errorDiv.style.display = 'none', 4000);
 }
 
-// ========== FUNCIONES DEL JUEGO ==========
+// ========== LÓGICA DEL JUEGO ==========
 
 function startLevel(levelId) {
     if (levelId > 0 && !currentUser.completedLevels.includes(levelId - 1)) {
-        showError('Completa el nivel anterior primero');
+        showError('🔒 Completa el nivel anterior primero');
         return;
     }
 
@@ -405,7 +248,7 @@ function startLevel(levelId) {
     correctAnswers = 0;
     lives = 3;
 
-    document.getElementById('levelTitle').textContent = `Nivel ${levelId + 1}: ${currentLevel.name}`;
+    document.getElementById('levelTitle').textContent = currentLevel.name;
     document.getElementById('livesDisplay').textContent = lives;
     document.getElementById('correctDisplay').textContent = correctAnswers;
 
@@ -416,7 +259,7 @@ function startLevel(levelId) {
 function showQuestion() {
     const quizzes = gameData.quizzes.filter(q => q.levelId === currentLevel.id);
     if (currentQuestionIndex >= quizzes.length) {
-        finishLevel();
+        finishLevel(true);
         return;
     }
 
@@ -430,46 +273,52 @@ function showQuestion() {
         const button = document.createElement('button');
         button.className = 'option-btn';
         button.textContent = option;
-        button.onclick = () => answerQuestion(index, quiz.c);
+        button.onclick = () => {
+            if (index === quiz.c) {
+                correctAnswers++;
+                document.getElementById('correctDisplay').textContent = correctAnswers;
+                currentQuestionIndex++;
+                showQuestion();
+            } else {
+                lives--;
+                document.getElementById('livesDisplay').textContent = lives;
+                if (lives <= 0) finishLevel(false);
+                else {
+                    currentQuestionIndex++;
+                    showQuestion();
+                }
+            }
+        };
         optionsContainer.appendChild(button);
     });
 }
 
-function answerQuestion(selectedIndex, correctIndex) {
-    if (selectedIndex === correctIndex) {
-        correctAnswers++;
-        document.getElementById('correctDisplay').textContent = correctAnswers;
-        currentQuestionIndex++;
-        setTimeout(showQuestion, 500);
-    } else {
-        lives--;
-        document.getElementById('livesDisplay').textContent = lives;
-
-        if (lives <= 0) {
-            finishLevel(false);
-        } else {
-            currentQuestionIndex++;
-            setTimeout(showQuestion, 500);
-        }
-    }
-}
-
-async function finishLevel(success = correctAnswers >= 4) {
+async function finishLevel(success) {
     if (success) {
         currentUser.soles += currentLevel.soles;
         if (!currentUser.completedLevels.includes(currentLevel.id)) {
             currentUser.completedLevels.push(currentLevel.id);
         }
-        await updateUserData();
+        await saveProgress();
         updateUI();
         updateLevelStates();
-        alert(`¡Ganaste ${currentLevel.soles} Soles! Total: ${currentUser.soles}`);
+        alert(`¡Felicidades! Ganaste ${currentLevel.soles} Soles`);
     } else {
-        alert('Perdiste todas las vidas. Intenta de nuevo.');
+        alert('Se acabaron las vidas. ¡Inténtalo de nuevo!');
     }
-    backToDashboard();
-}
-
-function backToDashboard() {
     showPage('dashboardPage');
 }
+
+// Inicialización al cargar
+window.onload = () => {
+    const savedUser = localStorage.getItem('currentUser');
+    if (savedUser) {
+        let users = JSON.parse(localStorage.getItem('prepol_users') || '{}');
+        if (users[savedUser]) {
+            currentUser = users[savedUser];
+            updateUI();
+            updateLevelStates();
+            showPage('dashboardPage');
+        }
+    }
+};
