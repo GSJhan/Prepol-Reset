@@ -9,18 +9,14 @@ const firebaseConfig = {
 };
 
 // ========== INICIALIZAR FIREBASE ==========
+let db = null;
+
 try {
-  // Inicializar la aplicación Firebase
+  // Inicializar la aplicación Firebase con API Compat
   const app = firebase.initializeApp(firebaseConfig);
   
-  // Obtener referencia a Firestore
-  const db = firebase.firestore();
-  
-  // Configurar Firestore
-  db.settings({
-    experimentalForceLongPolling: true,
-    cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED
-  });
+  // Obtener referencia a Firestore usando la API Compat
+  db = firebase.firestore();
   
   console.log('✅ Firebase inicializado correctamente');
   console.log('✅ Firestore conectado y disponible globalmente');
@@ -28,14 +24,21 @@ try {
 } catch (error) {
   console.error('❌ Error al inicializar Firebase:', error);
   console.error('Detalles:', error.message);
+  
+  // Intentar reinicializar si falla
+  if (error.code === 'app/duplicate-app') {
+    console.log('⚠️ Firebase ya estaba inicializado, usando instancia existente');
+    db = firebase.firestore();
+  }
 }
 
 // ========== VERIFICACIÓN DE DISPONIBILIDAD ==========
 // Esperar a que Firebase esté completamente listo
 window.addEventListener('load', function() {
-  if (typeof db !== 'undefined') {
+  if (db !== null && typeof db !== 'undefined') {
     console.log('✅ Variable db está disponible globalmente');
   } else {
     console.error('❌ Variable db NO está disponible');
+    console.error('Por favor, verifica tu configuración de Firebase');
   }
 });

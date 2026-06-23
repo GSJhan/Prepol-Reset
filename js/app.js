@@ -78,29 +78,35 @@ async function registerUser() {
     const confirmPassword = document.getElementById('confirmPassword').value;
 
     if (!username || !password || !confirmPassword) {
-        showError('Completa todos los campos');
+        showError('📋 Completa todos los campos');
         return;
     }
 
     if (username.length < 3) {
-        showError('El usuario debe tener al menos 3 caracteres');
+        showError('👤 El usuario debe tener al menos 3 caracteres');
         return;
     }
 
     if (password.length < 4) {
-        showError('La contraseña debe tener al menos 4 caracteres');
+        showError('🔐 La contraseña debe tener al menos 4 caracteres');
         return;
     }
 
     if (password !== confirmPassword) {
-        showError('Las contraseñas no coinciden');
+        showError('❌ Las contraseñas no coinciden');
+        return;
+    }
+
+    // Validar caracteres especiales en usuario
+    if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+        showError('👤 El usuario solo puede contener letras, números, guiones y guiones bajos');
         return;
     }
 
     try {
         // Validar que Firebase esté inicializado
-        if (typeof db === 'undefined') {
-            showError('Firebase no está configurado correctamente. Verifica firebase-config.js');
+        if (db === null || typeof db === 'undefined') {
+            showError('⚠️ Firebase no está configurado correctamente. Verifica firebase-config.js');
             console.error('Firebase no inicializado');
             return;
         }
@@ -112,7 +118,7 @@ async function registerUser() {
         const userSnap = await userRef.get();
         
         if (userSnap.exists()) {
-            showError('Este usuario ya existe');
+            showError('⚠️ Este usuario ya existe. Intenta con otro nombre');
             return;
         }
 
@@ -126,18 +132,33 @@ async function registerUser() {
             createdAt: new Date().toISOString()
         });
         
-        console.log('Usuario registrado:', username);
+        console.log('✅ Usuario registrado:', username);
+        showError('✅ ¡Cuenta creada exitosamente! Iniciando sesión...', 'success');
+
+        // Limpiar formulario
+        document.getElementById('newUsername').value = '';
+        document.getElementById('newPassword').value = '';
+        document.getElementById('confirmPassword').value = '';
 
         currentUser = { username: username };
         localStorage.setItem('currentUser', username);
-        loadUserData();
-        showPage('dashboardPage');
+        
+        setTimeout(() => {
+            loadUserData();
+            showPage('dashboardPage');
+        }, 1000);
     } catch (error) {
         console.error('Error al registrar:', error);
-        let errorMessage = 'Error al registrar';
+        let errorMessage = '❌ Error al registrar';
         
         if (error.message) {
-            errorMessage = error.message;
+            if (error.message.includes('permission')) {
+                errorMessage = '🔒 Permiso denegado. Verifica las reglas de Firestore';
+            } else if (error.message.includes('network')) {
+                errorMessage = '🌐 Error de conexión. Verifica tu internet';
+            } else {
+                errorMessage = error.message;
+            }
         }
         
         showError(errorMessage);
@@ -149,14 +170,14 @@ async function loginUser() {
     const password = document.getElementById('password').value;
 
     if (!username || !password) {
-        showError('Completa usuario y contraseña');
+        showError('📋 Completa usuario y contraseña');
         return;
     }
 
     try {
         // Validar que Firebase esté inicializado
-        if (typeof db === 'undefined') {
-            showError('Firebase no está configurado correctamente. Verifica firebase-config.js');
+        if (db === null || typeof db === 'undefined') {
+            showError('⚠️ Firebase no está configurado correctamente. Verifica firebase-config.js');
             console.error('Firebase no inicializado');
             return;
         }
@@ -168,7 +189,7 @@ async function loginUser() {
         const userSnap = await userRef.get();
         
         if (!userSnap.exists()) {
-            showError('Usuario no encontrado');
+            showError('👤 Usuario no encontrado. ¿Deseas crear una cuenta?');
             return;
         }
         
@@ -176,22 +197,36 @@ async function loginUser() {
         
         // Verificar contraseña
         if (userData.password !== password) {
-            showError('Contraseña incorrecta');
+            showError('🔐 Contraseña incorrecta. Intenta de nuevo');
             return;
         }
 
-        console.log('Sesión iniciada:', username);
+        console.log('✅ Sesión iniciada:', username);
+        showError('✅ ¡Bienvenido ' + username + '!', 'success');
+
+        // Limpiar formulario
+        document.getElementById('username').value = '';
+        document.getElementById('password').value = '';
 
         currentUser = { username: username };
         localStorage.setItem('currentUser', username);
-        loadUserData();
-        showPage('dashboardPage');
+        
+        setTimeout(() => {
+            loadUserData();
+            showPage('dashboardPage');
+        }, 500);
     } catch (error) {
         console.error('Error al ingresar:', error);
-        let errorMessage = 'Usuario o contraseña incorrectos';
+        let errorMessage = '❌ Error al iniciar sesión';
         
         if (error.message) {
-            errorMessage = error.message;
+            if (error.message.includes('permission')) {
+                errorMessage = '🔒 Permiso denegado. Verifica las reglas de Firestore';
+            } else if (error.message.includes('network')) {
+                errorMessage = '🌐 Error de conexión. Verifica tu internet';
+            } else {
+                errorMessage = error.message;
+            }
         }
         
         showError(errorMessage);
@@ -335,14 +370,26 @@ function updateLevelStates() {
     }
 }
 
-function showError(message) {
+function showError(message, type = 'error') {
     const errorDiv = document.getElementById('errorMessage');
     errorDiv.textContent = message;
     errorDiv.style.display = 'block';
-    console.error('Error mostrado:', message);
+    
+    // Cambiar estilo según el tipo de mensaje
+    if (type === 'success') {
+        errorDiv.style.background = 'rgba(34, 197, 94, 0.1)';
+        errorDiv.style.borderColor = '#22c55e';
+        errorDiv.style.color = '#22c55e';
+    } else {
+        errorDiv.style.background = 'rgba(239, 68, 68, 0.1)';
+        errorDiv.style.borderColor = '#ef4444';
+        errorDiv.style.color = '#ef4444';
+    }
+    
+    console.log((type === 'success' ? '✅' : '❌') + ' Mensaje mostrado:', message);
     setTimeout(() => {
         errorDiv.style.display = 'none';
-    }, 5000);
+    }, type === 'success' ? 3000 : 5000);
 }
 
 // ========== FUNCIONES DEL JUEGO ==========

@@ -16,24 +16,24 @@
                     <div class="logo-icon">🐕</div>
                     <h1 class="login-title">PREPOL  
 <span class="title-reset">RESET</span></h1>
-                    <p class="login-subtitle">Aprende Cívica Jugando</p>
+                    <p class="login-subtitle">🎮 Aprende Cívica Jugando 🇵🇪</p>
                 </div>
 
                 <form id="loginForm" class="form-group" onsubmit="event.preventDefault(); loginUser();">
                     <div class="form-title">🔐 Ingresar</div>
-                    <input type="text" id="username" placeholder="Usuario" class="input-field" required>
-                    <input type="password" id="password" placeholder="Contraseña" class="input-field" required>
+                    <input type="text" id="username" placeholder="Ingresa tu usuario" class="input-field" required autocomplete="username">
+                    <input type="password" id="password" placeholder="Ingresa tu contraseña" class="input-field" required autocomplete="current-password">
                     <button type="submit" class="btn-primary btn-full">Ingresar</button>
-                    <p class="toggle-form">¿No tienes cuenta? <a href="javascript:void(0)" onclick="toggleForm(event)">Registrarse</a></p>
+                    <p class="toggle-form">¿No tienes cuenta? <a href="javascript:void(0)" onclick="toggleForm(event)">Registrarse aquí</a></p>
                 </form>
 
                 <form id="registerForm" class="form-group" style="display: none;" onsubmit="event.preventDefault(); registerUser();">
                     <div class="form-title">📝 Crear Cuenta</div>
-                    <input type="text" id="newUsername" placeholder="Nuevo Usuario" class="input-field" required>
-                    <input type="password" id="newPassword" placeholder="Contraseña (mín. 4 caracteres)" class="input-field" required>
-                    <input type="password" id="confirmPassword" placeholder="Confirmar Contraseña" class="input-field" required>
+                    <input type="text" id="newUsername" placeholder="Elige tu usuario" class="input-field" required autocomplete="username">
+                    <input type="password" id="newPassword" placeholder="Contraseña (mín. 4 caracteres)" class="input-field" required autocomplete="new-password">
+                    <input type="password" id="confirmPassword" placeholder="Confirma tu contraseña" class="input-field" required autocomplete="new-password">
                     <button type="submit" class="btn-primary btn-full">Crear Cuenta</button>
-                    <p class="toggle-form">¿Ya tienes cuenta? <a href="javascript:void(0)" onclick="toggleForm(event)">Ingresar</a></p>
+                    <p class="toggle-form">¿Ya tienes cuenta? <a href="javascript:void(0)" onclick="toggleForm(event)">Ingresar aquí</a></p>
                 </form>
 
                 <div id="errorMessage" class="error-message" style="display: none;" role="alert"></div>
