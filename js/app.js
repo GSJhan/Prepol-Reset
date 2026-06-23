@@ -85,42 +85,44 @@ async function registerUser() {
 
     try {
         // Validar que Firebase esté inicializado
-        if (!auth || !db) {
+        if (!db) {
             showError('Firebase no está configurado correctamente. Verifica firebase-config.js');
-            console.error('Firebase no inicializado:', { auth, db });
+            console.error('Firebase no inicializado:', { db });
             return;
         }
 
-        const email = `${username}@prepol.local`;
-        console.log('Intentando registrar usuario:', email);
+        console.log('Intentando registrar usuario:', username);
         
-        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-        const user = userCredential.user;
-        console.log('Usuario registrado:', user.uid);
+        // Verificar si el usuario ya existe
+        const userRef = db.collection('users').doc(username);
+        const userSnap = await userRef.get();
+        
+        if (userSnap.exists()) {
+            showError('Este usuario ya existe');
+            return;
+        }
 
-        await db.collection('users').doc(user.uid).set({
+        // Crear el nuevo usuario
+        await userRef.set({
             username: username,
+            password: password, // Nota: En producción, esto debería estar hasheado
             soles: 100,
             rank: 'Ciudadano',
             completedLevels: [],
             createdAt: new Date().toISOString()
         });
-        console.log('Datos de usuario guardados en Firestore');
+        
+        console.log('Usuario registrado:', username);
 
-        currentUser = { uid: user.uid, username: username };
+        currentUser = { username: username };
+        localStorage.setItem('currentUser', username);
         loadUserData();
         showPage('dashboardPage');
     } catch (error) {
         console.error('Error al registrar:', error);
         let errorMessage = 'Error al registrar';
         
-        if (error.code === 'auth/email-already-in-use') {
-            errorMessage = 'Este usuario ya existe';
-        } else if (error.code === 'auth/weak-password') {
-            errorMessage = 'La contraseña es muy débil';
-        } else if (error.code === 'auth/invalid-email') {
-            errorMessage = 'Email inválido';
-        } else if (error.message) {
+        if (error.message) {
             errorMessage = error.message;
         }
         
@@ -139,33 +141,42 @@ async function loginUser() {
 
     try {
         // Validar que Firebase esté inicializado
-        if (!auth || !db) {
+        if (!db) {
             showError('Firebase no está configurado correctamente. Verifica firebase-config.js');
-            console.error('Firebase no inicializado:', { auth, db });
+            console.error('Firebase no inicializado:', { db });
             return;
         }
 
-        const email = `${username}@prepol.local`;
-        console.log('Intentando iniciar sesión:', email);
+        console.log('Intentando iniciar sesión:', username);
         
-        const userCredential = await auth.signInWithEmailAndPassword(email, password);
-        const user = userCredential.user;
-        console.log('Sesión iniciada:', user.uid);
+        // Buscar el usuario en Firestore
+        const userRef = db.collection('users').doc(username);
+        const userSnap = await userRef.get();
+        
+        if (!userSnap.exists()) {
+            showError('Usuario no encontrado');
+            return;
+        }
+        
+        const userData = userSnap.data();
+        
+        // Verificar contraseña
+        if (userData.password !== password) {
+            showError('Contraseña incorrecta');
+            return;
+        }
 
-        currentUser = { uid: user.uid, username: username };
+        console.log('Sesión iniciada:', username);
+
+        currentUser = { username: username };
+        localStorage.setItem('currentUser', username);
         loadUserData();
         showPage('dashboardPage');
     } catch (error) {
         console.error('Error al ingresar:', error);
         let errorMessage = 'Usuario o contraseña incorrectos';
         
-        if (error.code === 'auth/user-not-found') {
-            errorMessage = 'Usuario no encontrado. ¿Quizás no estés registrado?';
-        } else if (error.code === 'auth/wrong-password') {
-            errorMessage = 'Contraseña incorrecta';
-        } else if (error.code === 'auth/invalid-email') {
-            errorMessage = 'Email inválido';
-        } else if (error.message) {
+        if (error.message) {
             errorMessage = error.message;
         }
         
@@ -175,8 +186,8 @@ async function loginUser() {
 
 async function logout() {
     try {
-        await auth.signOut();
         currentUser = null;
+        localStorage.removeItem('currentUser');
         document.getElementById('username').value = '';
         document.getElementById('password').value = '';
         document.getElementById('newUsername').value = '';
@@ -194,9 +205,11 @@ async function loadUserData() {
     if (!currentUser) return;
 
     try {
-        const doc = await db.collection('users').doc(currentUser.uid).get();
-        if (doc.exists) {
-            const data = doc.data();
+        const userRef = db.collection('users').doc(currentUser.username);
+        const userSnap = await userRef.get();
+        
+        if (userSnap.exists()) {
+            const data = userSnap.data();
             currentUser.soles = data.soles || 100;
             currentUser.rank = data.rank || 'Ciudadano';
             currentUser.completedLevels = data.completedLevels || [];
@@ -213,7 +226,7 @@ async function updateUserData() {
     if (!currentUser) return;
 
     try {
-        await db.collection('users').doc(currentUser.uid).update({
+        await db.collection('users').doc(currentUser.username).update({
             soles: currentUser.soles,
             rank: currentUser.rank,
             completedLevels: currentUser.completedLevels

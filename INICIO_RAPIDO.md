@@ -1,5 +1,11 @@
 # ⚡ Guía de Inicio Rápido - PREPOL RESET
 
+## ✨ Cambio Principal: Login Solo con Usuario y Contraseña
+
+**Ya no necesitas correo electrónico.** El sistema es igual al de `aventuras-numericas`: solo **Usuario** y **Contraseña**.
+
+---
+
 ## Lo que necesitas para que funcione el login/registro
 
 ### 1️⃣ Obtén tus Credenciales de Firebase (5 minutos)
@@ -35,17 +41,7 @@ const firebaseConfig = {
 };
 ```
 
-### 3️⃣ Habilita Email/Password en Firebase
-
-1. Ve a [https://console.firebase.google.com/](https://console.firebase.google.com/)
-2. Selecciona tu proyecto
-3. Ve a **Authentication** (Autenticación)
-4. Haz clic en **"Sign-in method"** (Método de inicio de sesión)
-5. Busca **"Email/Password"** y haz clic en el lápiz
-6. **Activa** la opción
-7. Haz clic en **"Guardar"**
-
-### 4️⃣ Crea una Base de Datos Firestore
+### 3️⃣ Crea una Base de Datos Firestore
 
 1. En Firebase Console, ve a **Firestore Database**
 2. Haz clic en **"Crear base de datos"**
@@ -53,7 +49,7 @@ const firebaseConfig = {
 4. Elige tu región
 5. Haz clic en **"Crear"**
 
-### 5️⃣ Configura las Reglas de Seguridad
+### 4️⃣ Configura las Reglas de Seguridad
 
 1. En Firestore, ve a la pestaña **"Reglas"**
 2. Reemplaza todo el contenido con esto:
@@ -63,7 +59,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /users/{userId} {
-      allow read, write: if request.auth.uid == userId;
+      allow read, write: if true;
     }
   }
 }
@@ -71,7 +67,7 @@ service cloud.firestore {
 
 3. Haz clic en **"Publicar"**
 
-### 6️⃣ ¡Listo! Prueba tu aplicación
+### 5️⃣ ¡Listo! Prueba tu aplicación
 
 1. Abre `index.html` en tu navegador
 2. Haz clic en **"Registrarse"**
@@ -88,13 +84,24 @@ service cloud.firestore {
 - Se carga antes de `app.js`
 
 ✅ **Actualizado: `js/app.js`**
+- **Ya no usa autenticación por email**
+- Usa Firestore directamente con el nombre de usuario como ID
 - Mejor manejo de errores
 - Mensajes más claros
-- Validación de que Firebase esté inicializado
-- Logs en consola para debugging
 
 ✅ **Actualizado: `index.html`**
 - Ahora carga `firebase-config.js` en el orden correcto
+
+---
+
+## Comparación: Antes vs Ahora
+
+| Aspecto | Antes | Ahora |
+|---------|-------|-------|
+| **Login** | Usuario + Correo | Solo Usuario |
+| **Contraseña** | Autenticación Firebase Auth | Almacenada en Firestore |
+| **Base de datos** | Firestore | Firestore |
+| **Experiencia** | Necesitaba correo | Más simple, como aventuras-numericas |
 
 ---
 
@@ -106,14 +113,14 @@ service cloud.firestore {
 ### ❌ "Este usuario ya existe"
 **Solución:** El usuario ya fue registrado. Intenta con otro nombre de usuario.
 
-### ❌ "Usuario o contraseña incorrectos"
-**Solución:** Verifica que escribiste correctamente el usuario y contraseña. Recuerda que es sensible a mayúsculas/minúsculas.
+### ❌ "Usuario no encontrado"
+**Solución:** El usuario no está registrado. Intenta registrarte primero.
+
+### ❌ "Contraseña incorrecta"
+**Solución:** Verifica que escribiste correctamente la contraseña. Es sensible a mayúsculas/minúsculas.
 
 ### ❌ "Permiso denegado" al guardar datos
-**Solución:** Las reglas de Firestore no están configuradas. Sigue el paso 5 nuevamente.
-
-### ❌ "Email/Password no está habilitado"
-**Solución:** Ve a Firebase Console → Authentication → Sign-in method → Activa Email/Password
+**Solución:** Las reglas de Firestore no están configuradas. Sigue el paso 4 nuevamente.
 
 ---
 

@@ -1,5 +1,9 @@
 # 🔧 Guía de Configuración de Firebase para PREPOL RESET
 
+## Cambio Principal: Sistema de Usuario y Contraseña Puro
+
+A diferencia de la versión anterior, **ahora el login es solo con Usuario y Contraseña**, sin necesidad de correo electrónico. Los datos se guardan directamente en Firestore bajo el nombre de usuario como ID del documento.
+
 ## Paso 1: Obtener tus Credenciales de Firebase
 
 ### 1.1 Accede a Firebase Console
@@ -14,16 +18,7 @@
 4. Si no tienes una app web, haz clic en el ícono `</>` para crear una
 5. Copia la configuración que se muestra (verás un objeto con `apiKey`, `authDomain`, etc.)
 
-## Paso 2: Habilitar Autenticación por Email/Contraseña
-
-1. En la consola de Firebase, ve a **Authentication** (Autenticación)
-2. Haz clic en la pestaña **"Sign-in method"** (Método de inicio de sesión)
-3. Busca **"Email/Password"** (Correo electrónico/Contraseña)
-4. Haz clic en el ícono de editar (lápiz)
-5. Activa la opción **"Email/Password"**
-6. Haz clic en **"Guardar"**
-
-## Paso 3: Crear Base de Datos Firestore
+## Paso 2: Crear Base de Datos Firestore
 
 1. En la consola de Firebase, ve a **Firestore Database**
 2. Haz clic en **"Crear base de datos"**
@@ -39,7 +34,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /users/{userId} {
-      allow read, write: if request.auth.uid == userId;
+      allow read, write: if true;
     }
   }
 }
@@ -47,9 +42,11 @@ service cloud.firestore {
 
 Luego haz clic en **"Publicar"**.
 
-## Paso 4: Actualizar tu Código
+> **Nota**: Estas son reglas de prueba. Para producción, implementa validaciones más estrictas.
 
-### 4.1 Abre el archivo `js/firebase-config.js`
+## Paso 3: Actualizar tu Código
+
+### 3.1 Abre el archivo `js/firebase-config.js`
 
 Reemplaza los valores de placeholder con tus credenciales reales:
 
@@ -64,9 +61,7 @@ const firebaseConfig = {
 };
 ```
 
-### 4.2 Actualiza el archivo `index.html`
-
-Asegúrate de que el archivo HTML cargue el archivo de configuración ANTES de `app.js`:
+### 3.2 Verifica que `index.html` cargue los scripts en orden correcto
 
 ```html
 <!-- FIREBASE SDK -->
@@ -81,67 +76,69 @@ Asegúrate de que el archivo HTML cargue el archivo de configuración ANTES de `
 <script src="js/app.js"></script>
 ```
 
-### 4.3 Actualiza `js/app.js`
-
-Reemplaza la sección de inicialización de Firebase (líneas 1-18) con:
-
-```javascript
-// ========== INICIALIZAR FIREBASE ==========
-// La configuración se carga desde firebase-config.js
-// No necesitas repetir la inicialización aquí
-
-console.log('✅ Firebase inicializado correctamente');
-
-// ========== DATOS DEL JUEGO ==========
-// ... resto del código
-```
-
-## Paso 5: Prueba tu Aplicación
+## Paso 4: ¡Listo! Prueba tu Aplicación
 
 1. Abre `index.html` en tu navegador
-2. Intenta **registrarte** con un nuevo usuario
-3. Luego intenta **iniciar sesión** con esas credenciales
-4. Verifica que los datos se guarden en Firestore
+2. Haz clic en **"Registrarse"**
+3. Crea una cuenta (ej: usuario: `juan`, contraseña: `1234`)
+4. ¡Deberías ver el dashboard!
+5. Prueba a cerrar sesión y vuelve a iniciar sesión
 
-## Solución de Problemas
-
-### Error: "El proyecto no está configurado correctamente"
-- Verifica que copiaste correctamente todos los valores de Firebase
-- Asegúrate de que `firebase-config.js` se carga antes de `app.js`
-
-### Error: "Email/Password no está habilitado"
-- Ve a **Authentication → Sign-in method** y activa **Email/Password**
-
-### Error: "Permiso denegado" al guardar datos
-- Verifica que las reglas de Firestore estén publicadas correctamente
-- Asegúrate de que estés autenticado antes de guardar datos
-
-### No puedo registrarme
-- Verifica que tu contraseña tenga al menos 4 caracteres
-- Comprueba que el email sea válido (el sistema usa `usuario@prepol.local`)
-- Abre la consola del navegador (F12) para ver mensajes de error detallados
+---
 
 ## Estructura de Datos en Firestore
 
-Cuando un usuario se registra, se crea un documento en la colección `users`:
+Cuando un usuario se registra, se crea un documento en la colección `users` con el **nombre de usuario como ID**:
 
 ```
-/users/{uid}
-├── username: "nombreUsuario"
+/users/juan
+├── username: "juan"
+├── password: "1234"
 ├── soles: 100
 ├── rank: "Ciudadano"
 ├── completedLevels: []
 └── createdAt: "2024-01-01T12:00:00.000Z"
 ```
 
+---
+
+## Solución de Problemas
+
+### ❌ "Firebase no está configurado correctamente"
+**Solución:** Verifica que `firebase-config.js` esté en la carpeta `js/` y que los valores sean correctos.
+
+### ❌ "Este usuario ya existe"
+**Solución:** El usuario ya fue registrado. Intenta con otro nombre de usuario.
+
+### ❌ "Usuario no encontrado"
+**Solución:** El usuario no está registrado. Intenta registrarte primero o verifica que escribiste correctamente el nombre de usuario.
+
+### ❌ "Contraseña incorrecta"
+**Solución:** Verifica que escribiste correctamente la contraseña. Recuerda que es sensible a mayúsculas/minúsculas.
+
+### ❌ "Permiso denegado" al guardar datos
+**Solución:** Las reglas de Firestore no están configuradas. Sigue el paso 2 nuevamente y asegúrate de publicar las reglas.
+
+---
+
 ## Próximos Pasos
 
 Una vez que todo funcione:
 1. Cambia las reglas de Firestore a **modo de producción** para mayor seguridad
-2. Considera agregar validación de email
-3. Implementa recuperación de contraseña
+2. Implementa hash de contraseñas (actualmente se guardan en texto plano, solo para desarrollo)
+3. Agrega validación de nombres de usuario (sin caracteres especiales, etc.)
 4. Agrega más contenido de preguntas en `gameData.quizzes`
 
 ---
 
-¿Necesitas ayuda adicional? Abre la consola del navegador (F12) para ver mensajes de error detallados.
+## ¿Necesitas ayuda?
+
+1. **Abre la consola del navegador** (F12 o Ctrl+Shift+I)
+2. Ve a la pestaña **"Console"**
+3. Intenta registrarte o iniciar sesión
+4. Busca mensajes de error en rojo
+5. Cópialos y comparte para obtener ayuda
+
+---
+
+**¡Éxito! 🚀**
