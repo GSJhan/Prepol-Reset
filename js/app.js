@@ -361,6 +361,34 @@ function logout() {
     showPage('loginPage');
 }
 
+async function deleteAccount() {
+    if (!currentUser) return;
+    
+    const confirmDelete = confirm("¿Estás seguro de que quieres borrar tu cuenta permanentemente? Esta acción no se puede deshacer.");
+    if (!confirmDelete) return;
+
+    const username = currentUser.username;
+
+    try {
+        // 1. Borrar de Firebase
+        if (typeof db !== 'undefined' && db !== null) {
+            await db.collection('users').doc(username).delete();
+        }
+
+        // 2. Borrar del LocalStorage
+        let users = JSON.parse(localStorage.getItem('prepol_users') || '{}');
+        delete users[username];
+        localStorage.setItem('prepol_users', JSON.stringify(users));
+
+        // 3. Salir
+        alert("Tu cuenta ha sido eliminada correctamente.");
+        logout();
+    } catch (error) {
+        console.error("Error al borrar cuenta:", error);
+        alert("Hubo un error al intentar borrar la cuenta. Por favor intenta de nuevo.");
+    }
+}
+
 // ========== FUNCIONES DE DATOS ==========
 
 function updateUI() {
@@ -376,6 +404,16 @@ function updateUI() {
     // Actualizar vidas disponibles
     const availableLives = getAvailableLives(currentUser);
     document.getElementById('livesAvailableDisplay').textContent = availableLives;
+
+    // Actualizar contador si no hay vidas
+    const timerContainer = document.getElementById('livesTimerContainer');
+    if (availableLives === 0) {
+        timerContainer.style.display = 'block';
+        const timeRemaining = getTimeUntilLivesRegenerate(currentUser);
+        document.getElementById('livesCountdown').textContent = formatTime(timeRemaining);
+    } else {
+        timerContainer.style.display = 'none';
+    }
 }
 
 function updateLevelStates() {
@@ -442,7 +480,9 @@ function startLivesUpdateInterval() {
     
     livesUpdateInterval = setInterval(() => {
         if (currentUser) {
+            const availableLives = getAvailableLives(currentUser);
             const timeRemaining = getTimeUntilLivesRegenerate(currentUser);
+            
             if (timeRemaining === 0 && currentUser.availableLives === 0) {
                 currentUser.availableLives = LIVES_MAX;
                 currentUser.lastLivesLostTime = null;
@@ -450,6 +490,12 @@ function startLivesUpdateInterval() {
                 updateUI();
                 updateLevelStates();
                 showError('❤️ ¡Tus vidas se han regenerado!', 'success');
+            } else if (availableLives === 0) {
+                // Actualizar solo el contador en la UI cada segundo
+                const countdownEl = document.getElementById('livesCountdown');
+                if (countdownEl) {
+                    countdownEl.textContent = formatTime(timeRemaining);
+                }
             }
         }
     }, 1000);

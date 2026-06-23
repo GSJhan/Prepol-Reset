@@ -63,9 +63,14 @@
                 <div class="topbar">
                     <h1>Bienvenido, <span id="usernameDisplay">Usuario</span></h1>
                     <div class="topbar-right">
-                        <div class="topbar-stat">
-                            <span class="icon">❤️</span>
-                            <span id="livesAvailableDisplay">3</span>/3 Vidas
+                        <div class="topbar-stat hearts-container">
+                            <div class="hearts-display">
+                                <span class="heart-icon">❤️</span>
+                                <span id="livesAvailableDisplay">3</span>/3
+                            </div>
+                            <div id="livesTimerContainer" class="lives-timer" style="display: none;">
+                                ⏳ <span id="livesCountdown">--:--</span>
+                            </div>
                         </div>
                         <div class="topbar-stat">
                             <span class="icon">💰</span>
@@ -249,6 +254,9 @@
                         <span>Niveles Completados</span>
                         <strong id="perfilLevels">0</strong>
                     </div>
+                </div>
+                <div class="perfil-actions" style="margin-top: 2rem; border-top: 1px solid #eee; padding-top: 1rem;">
+                    <button onclick="deleteAccount()" class="btn-danger" style="background-color: #ff4b2b; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold;">⚠️ Borrar mi cuenta</button>
                 </div>
             </div>
         </div>

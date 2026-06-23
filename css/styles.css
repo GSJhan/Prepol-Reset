@@ -393,6 +393,52 @@ body {
     font-size: 1.5rem;
 }
 
+.hearts-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    background: #fff0f0 !important;
+    padding: 8px 15px !important;
+    border-radius: 15px;
+    border: 2px solid #ffccd5;
+    transition: all 0.3s ease;
+}
+
+.hearts-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 800;
+    color: #ff4b2b;
+    font-size: 1.1rem;
+}
+
+.heart-icon {
+    font-size: 1.4rem;
+    filter: drop-shadow(0 2px 4px rgba(255, 75, 43, 0.3));
+    animation: heartBeat 1.5s infinite;
+}
+
+@keyframes heartBeat {
+    0% { transform: scale(1); }
+    14% { transform: scale(1.1); }
+    28% { transform: scale(1); }
+    42% { transform: scale(1.1); }
+    70% { transform: scale(1); }
+}
+
+.lives-timer {
+    font-size: 0.8rem;
+    color: #666;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 2px 8px;
+    border-radius: 10px;
+    border: 1px solid #ffccd5;
+}
+
 /* ========== MUNDOS Y NIVELES - DUOLINGO INSPIRED ========== */
 .mundos-container {
     display: flex;
