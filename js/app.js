@@ -1,6 +1,10 @@
 // ========== MODO DE EMERGENCIA (LOCAL STORAGE) ==========
 const USE_LOCAL_STORAGE = true;
 
+// ========== CONSTANTES ==========
+const LIVES_MAX = 3;
+const LIVES_REGENERATION_TIME = 15 * 60 * 1000; // 15 minutos en milisegundos
+
 // ========== UTILIDADES ==========
 function shuffleArray(array) {
     const shuffled = [...array];
@@ -17,6 +21,42 @@ function getRankByPoints(soles) {
     if (soles >= 500) return '✨ Ciudadano Informado';
     if (soles >= 250) return '🎖️ Ciudadano Activo';
     return '👤 Ciudadano';
+}
+
+function getAvailableLives(user) {
+    if (!user.lastLivesLostTime) {
+        return LIVES_MAX;
+    }
+    
+    const now = new Date().getTime();
+    const timePassed = now - user.lastLivesLostTime;
+    
+    if (timePassed >= LIVES_REGENERATION_TIME) {
+        return LIVES_MAX;
+    }
+    
+    return 0;
+}
+
+function getTimeUntilLivesRegenerate(user) {
+    if (!user.lastLivesLostTime) {
+        return 0;
+    }
+    
+    const now = new Date().getTime();
+    const timePassed = now - user.lastLivesLostTime;
+    
+    if (timePassed >= LIVES_REGENERATION_TIME) {
+        return 0;
+    }
+    
+    return Math.ceil((LIVES_REGENERATION_TIME - timePassed) / 1000);
+}
+
+function formatTime(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
 }
 
 // ========== DATOS DEL JUEGO ==========
@@ -161,6 +201,7 @@ let currentQuestionIndex = 0;
 let correctAnswers = 0;
 let lives = 3;
 let shuffledOptions = [];
+let livesUpdateInterval = null;
 
 // ========== FUNCIONES DE AUTENTICACIÓN ==========
 
@@ -208,6 +249,8 @@ async function registerUser() {
             soles: 100,
             rank: '👤 Ciudadano',
             completedLevels: [],
+            availableLives: LIVES_MAX,
+            lastLivesLostTime: null,
             createdAt: new Date().toISOString()
         };
 
@@ -277,6 +320,7 @@ async function loginUser() {
             updateUI();
             updateLevelStates();
             showPage('dashboardPage');
+            startLivesUpdateInterval();
         }, 500);
     } catch (error) {
         showError('❌ Error al iniciar sesión');
@@ -286,6 +330,7 @@ async function loginUser() {
 function logout() {
     currentUser = null;
     localStorage.removeItem('currentUser');
+    if (livesUpdateInterval) clearInterval(livesUpdateInterval);
     showPage('loginPage');
 }
 
@@ -300,13 +345,30 @@ function updateUI() {
     document.getElementById('perfilSoles').textContent = currentUser.soles;
     document.getElementById('perfilRank').textContent = currentUser.rank;
     document.getElementById('perfilLevels').textContent = currentUser.completedLevels.length;
+    
+    // Actualizar vidas disponibles
+    const availableLives = getAvailableLives(currentUser);
+    document.getElementById('livesAvailableDisplay').textContent = availableLives;
 }
 
 function updateLevelStates() {
     if (!currentUser) return;
+    const availableLives = getAvailableLives(currentUser);
+    
     for (let i = 0; i < gameData.levels.length; i++) {
         const levelCard = document.getElementById(`nivel-${i}`);
         if (!levelCard) continue;
+
+        // Si no hay vidas, bloquear todos los niveles
+        if (availableLives === 0) {
+            levelCard.classList.add('locked');
+            levelCard.style.opacity = '0.5';
+            levelCard.style.cursor = 'not-allowed';
+            continue;
+        }
+
+        levelCard.style.opacity = '1';
+        levelCard.style.cursor = 'pointer';
 
         if (i === 0 || currentUser.completedLevels.includes(i - 1)) {
             levelCard.classList.remove('locked');
@@ -332,10 +394,30 @@ async function saveProgress() {
             await db.collection('users').doc(currentUser.username).update({
                 soles: currentUser.soles,
                 rank: currentUser.rank,
-                completedLevels: currentUser.completedLevels
+                completedLevels: currentUser.completedLevels,
+                availableLives: currentUser.availableLives,
+                lastLivesLostTime: currentUser.lastLivesLostTime
             });
         } catch (e) { console.log("Error sincronizando"); }
     }
+}
+
+function startLivesUpdateInterval() {
+    if (livesUpdateInterval) clearInterval(livesUpdateInterval);
+    
+    livesUpdateInterval = setInterval(() => {
+        if (currentUser) {
+            const timeRemaining = getTimeUntilLivesRegenerate(currentUser);
+            if (timeRemaining === 0 && currentUser.availableLives === 0) {
+                currentUser.availableLives = LIVES_MAX;
+                currentUser.lastLivesLostTime = null;
+                saveProgress();
+                updateUI();
+                updateLevelStates();
+                showError('❤️ ¡Tus vidas se han regenerado!', 'success');
+            }
+        }
+    }, 1000);
 }
 
 // ========== FUNCIONES DE UI ==========
@@ -360,6 +442,14 @@ function backToDashboard() {
 // ========== LÓGICA DEL JUEGO ==========
 
 function startLevel(levelId) {
+    const availableLives = getAvailableLives(currentUser);
+    
+    if (availableLives === 0) {
+        const timeRemaining = getTimeUntilLivesRegenerate(currentUser);
+        showError(`❌ No tienes vidas disponibles. Vuelven en: ${formatTime(timeRemaining)}`);
+        return;
+    }
+
     if (levelId > 0 && !currentUser.completedLevels.includes(levelId - 1)) {
         showError('🔒 Completa el nivel anterior primero');
         return;
@@ -438,7 +528,15 @@ async function finishLevel(success) {
         updateLevelStates();
         alert(`🎉 ¡Felicidades! Ganaste ${currentLevel.soles} Soles\n💰 Total: ${currentUser.soles} Soles\n🏅 Rango: ${currentUser.rank}`);
     } else {
-        alert('💔 Se acabaron las vidas. ¡Inténtalo de nuevo!');
+        // Perder vidas
+        currentUser.availableLives = 0;
+        currentUser.lastLivesLostTime = new Date().getTime();
+        await saveProgress();
+        updateUI();
+        updateLevelStates();
+        
+        const timeRemaining = getTimeUntilLivesRegenerate(currentUser);
+        alert(`💔 Se acabaron las vidas.\n\n❤️ Tus vidas se regenerarán en: ${formatTime(timeRemaining)}\n\nInténtalo de nuevo en ${timeRemaining} segundos.`);
     }
     showPage('dashboardPage');
 }
@@ -450,9 +548,17 @@ window.onload = () => {
         let users = JSON.parse(localStorage.getItem('prepol_users') || '{}');
         if (users[savedUser]) {
             currentUser = users[savedUser];
+            
+            // Inicializar vidas si no existen
+            if (!currentUser.availableLives) {
+                currentUser.availableLives = LIVES_MAX;
+                currentUser.lastLivesLostTime = null;
+            }
+            
             updateUI();
             updateLevelStates();
             showPage('dashboardPage');
+            startLivesUpdateInterval();
         }
     }
 };
