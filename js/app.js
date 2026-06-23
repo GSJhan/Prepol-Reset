@@ -1,5 +1,5 @@
-// ========== INICIALIZACIÓN DE FIREBASE ==========
-// Inicializar Firebase
+
+
 if (typeof firebase !== 'undefined') {
     firebase.initializeApp(firebaseConfig);
     var db = firebase.firestore();
@@ -7,14 +7,14 @@ if (typeof firebase !== 'undefined') {
     console.error("Firebase SDK no cargado. Revisa index.html");
 }
 
-// ========== MODO DE EMERGENCIA (LOCAL STORAGE) ==========
+
 const USE_LOCAL_STORAGE = true;
 
-// ========== CONSTANTES ==========
+
 const LIVES_MAX = 3;
 const LIVES_REGENERATION_TIME = 15 * 60 * 1000; // 15 minutos en milisegundos
 
-// ========== UTILIDADES ==========
+
 function shuffleArray(array) {
     const shuffled = [...array];
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -68,7 +68,7 @@ function formatTime(seconds) {
     return `${minutes}:${secs.toString().padStart(2, '0')}`;
 }
 
-// ========== DATOS DEL JUEGO ==========
+
 const gameData = {
     levels: [
         { id: 0, name: 'El Municipio', mundo: 1, preguntas: 5, soles: 50 },
@@ -511,7 +511,7 @@ function startLivesUpdateInterval() {
     }, 1000);
 }
 
-// ========== FUNCIONES DE UI ==========
+
 
 function showPage(pageId) {
     document.querySelectorAll('.page').forEach(page => page.style.display = 'none');
@@ -530,7 +530,7 @@ function backToDashboard() {
     showPage('dashboardPage');
 }
 
-// ========== LÓGICA DEL JUEGO ==========
+
 
 function startLevel(levelId) {
     const availableLives = getAvailableLives(currentUser);
@@ -568,7 +568,7 @@ function startLevel(levelId) {
 }
 
 function showQuestion() {
-    if (currentQuestionIndex >= currentLevelQuizzes.length) {
+    if (correctAnswers >= 5) {
         finishLevel(true);
         return;
     }
@@ -587,25 +587,24 @@ function showQuestion() {
         button.className = 'option-btn';
         button.textContent = option.text;
         button.onclick = () => {
-            if (option.originalIndex === quiz.c) {
-                correctAnswers++;
-                document.getElementById('correctDisplay').textContent = correctAnswers;
-                currentQuestionIndex++;
-                showQuestion();
-            } else {
-                lives--;
-                document.getElementById('livesDisplay').textContent = lives;
-                
-                if (lives <= 0) {
-                    finishLevel(false);
-                } else {
-                    // SI FALLA: Mover la pregunta actual al final de la lista
-                    const failedQuiz = currentLevelQuizzes.splice(currentQuestionIndex, 1)[0];
-                    currentLevelQuizzes.push(failedQuiz);
-                    // No aumentamos currentQuestionIndex porque splice ya movió los elementos
+                if (option.originalIndex === quiz.c) {
+                    correctAnswers++;
+                    document.getElementById('correctDisplay').textContent = correctAnswers;
+                    currentQuestionIndex++;
                     showQuestion();
+                } else {
+                    lives--;
+                    document.getElementById('livesDisplay').textContent = lives;
+                    
+                    if (lives <= 0) {
+                        finishLevel(false);
+                    } else {
+                        const failedQuiz = currentLevelQuizzes.splice(currentQuestionIndex, 1)[0];
+                        currentLevelQuizzes.push(failedQuiz);
+                        // No incrementamos currentQuestionIndex, el splice ya trajo la siguiente pregunta al índice actual
+                        showQuestion();
+                    }
                 }
-            }
         };
         optionsContainer.appendChild(button);
     });
@@ -641,7 +640,7 @@ async function finishLevel(success) {
     showPage('dashboardPage');
 }
 
-// Inicialización
+
 window.onload = async () => {
     const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
