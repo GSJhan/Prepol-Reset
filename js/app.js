@@ -1,10 +1,19 @@
 
 
-if (typeof firebase !== 'undefined') {
-    firebase.initializeApp(firebaseConfig);
-    var db = firebase.firestore();
-} else {
-    console.error("Firebase SDK no cargado. Revisa index.html");
+let db;
+try {
+    if (typeof firebase !== 'undefined') {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.firestore();
+        // Habilitar persistencia offline para mejor experiencia
+        db.enablePersistence().catch((err) => {
+            console.warn("Persistencia offline no disponible:", err.code);
+        });
+    } else {
+        console.error("Firebase SDK no cargado.");
+    }
+} catch (error) {
+    console.error("Error al inicializar Firebase:", error);
 }
 
 
@@ -250,7 +259,7 @@ async function registerUser() {
         let users = JSON.parse(localStorage.getItem('prepol_users') || '{}');
         
         // Verificar en Firebase si el usuario realmente existe
-        if (typeof db !== 'undefined' && db !== null) {
+        if (db) {
             try {
                 const userSnap = await db.collection('users').doc(username).get();
                 if (userSnap.exists()) {
@@ -290,7 +299,7 @@ async function registerUser() {
         users[username] = newUser;
         localStorage.setItem('prepol_users', JSON.stringify(users));
         
-        if (typeof db !== 'undefined' && db !== null) {
+        if (db) {
             try {
                 await db.collection('users').doc(username).set(newUser);
             } catch (e) { console.log("Firebase no disponible"); }
@@ -325,7 +334,7 @@ async function loginUser() {
         let userData = users[username];
 
         // Intentar siempre obtener los datos más frescos de Firebase si hay conexión
-        if (typeof db !== 'undefined' && db !== null) {
+        if (db) {
             try {
                 const userSnap = await db.collection('users').doc(username).get();
                 if (userSnap.exists()) {
@@ -381,7 +390,7 @@ async function deleteAccount() {
 
     try {
         // 1. Borrar de Firebase
-        if (typeof db !== 'undefined' && db !== null) {
+        if (db) {
             await db.collection('users').doc(username).delete();
         }
 
@@ -466,7 +475,7 @@ async function saveProgress() {
     localStorage.setItem('prepol_users', JSON.stringify(users));
 
     // Sincronizar con Firebase (Fuente de verdad)
-    if (typeof db !== 'undefined' && db !== null) {
+    if (db) {
         try {
             // Usamos set con merge: true para asegurar que el documento exista o se actualice correctamente
             await db.collection('users').doc(currentUser.username).set({
@@ -645,22 +654,20 @@ window.onload = async () => {
     const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
         // Intentar obtener datos actualizados de Firebase
-        if (typeof db !== 'undefined' && db !== null) {
+        if (db) {
             try {
                 const userSnap = await db.collection('users').doc(savedUser).get();
                 if (userSnap.exists()) {
                     currentUser = userSnap.data();
-                    // Actualizar localStorage
                     let users = JSON.parse(localStorage.getItem('prepol_users') || '{}');
                     users[savedUser] = currentUser;
                     localStorage.setItem('prepol_users', JSON.stringify(users));
                 } else {
-                    // Si no está en Firebase, usar local
                     let users = JSON.parse(localStorage.getItem('prepol_users') || '{}');
                     currentUser = users[savedUser];
                 }
             } catch (e) {
-                console.log("Error al cargar desde Firebase, usando local");
+                console.warn("Firebase no respondió a tiempo, usando datos locales");
                 let users = JSON.parse(localStorage.getItem('prepol_users') || '{}');
                 currentUser = users[savedUser];
             }
