@@ -238,7 +238,30 @@ async function registerUser() {
 
     try {
         let users = JSON.parse(localStorage.getItem('prepol_users') || '{}');
-        if (users[username]) {
+        
+        // Verificar en Firebase si el usuario realmente existe
+        if (typeof db !== 'undefined' && db !== null) {
+            try {
+                const userSnap = await db.collection('users').doc(username).get();
+                if (userSnap.exists()) {
+                    showError('⚠️ Este usuario ya existe');
+                    return;
+                } else {
+                    // Si no existe en Firebase, lo eliminamos del localStorage local por si acaso
+                    if (users[username]) {
+                        delete users[username];
+                        localStorage.setItem('prepol_users', JSON.stringify(users));
+                    }
+                }
+            } catch (e) { 
+                console.log("Error al verificar usuario en Firebase");
+                // Si falla Firebase, confiamos en localStorage
+                if (users[username]) {
+                    showError('⚠️ Este usuario ya existe');
+                    return;
+                }
+            }
+        } else if (users[username]) {
             showError('⚠️ Este usuario ya existe');
             return;
         }
