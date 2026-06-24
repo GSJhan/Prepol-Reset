@@ -499,11 +499,27 @@ function showQuestion() {
     const container = document.getElementById('optionsContainer');
     container.innerHTML = '';
 
-    quiz.o.forEach((option, index) => {
+    // Crear array con índices y opciones
+    const optionsWithIndex = quiz.o.map((option, index) => ({
+        text: option,
+        originalIndex: index
+    }));
+
+    // Aleatorizar las opciones
+    for (let i = optionsWithIndex.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [optionsWithIndex[i], optionsWithIndex[j]] = [optionsWithIndex[j], optionsWithIndex[i]];
+    }
+
+    // Encontrar el índice correcto después de la aleatorización
+    const correctAnswerIndex = optionsWithIndex.findIndex(opt => opt.originalIndex === quiz.c);
+
+    // Crear botones con las opciones aleatorias
+    optionsWithIndex.forEach((option, index) => {
         const btn = document.createElement('button');
         btn.className = 'option-btn';
-        btn.textContent = option;
-        btn.onclick = () => answerQuestion(index, quiz.c);
+        btn.textContent = option.text;
+        btn.onclick = () => answerQuestion(index, correctAnswerIndex);
         container.appendChild(btn);
     });
 }
