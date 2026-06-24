@@ -42,6 +42,16 @@ const gameData = {
         { levelId: 1, q: '¿Cuál es el objetivo principal?', o: ['Vender productos', 'Mejorar el barrio', 'Hacer dinero', 'Hacer leyes'], c: 1 },
         { levelId: 1, q: '¿Cómo participar en la junta?', o: ['Siendo mayor de edad', 'Siendo vecino del área', 'Siendo funcionario', 'Solo invitados'], c: 1 },
         { levelId: 1, q: '¿Qué actividades realiza?', o: ['Compras', 'Gestión comunitaria', 'Turismo', 'Agricultura'], c: 1 },
+        { levelId: 2, q: '¿Qué es el Presupuesto Participativo?', o: ['Dinero del alcalde', 'Vecinos deciden obras', 'Sueldo de regidores', 'Pago de multas'], c: 1 },
+        { levelId: 2, q: '¿Quiénes proponen proyectos?', o: ['Solo el alcalde', 'Los ciudadanos organizados', 'La policía', 'Empresas privadas'], c: 1 },
+        { levelId: 2, q: '¿Para qué sirve el presupuesto?', o: ['Para fiestas', 'Para mejorar la comunidad', 'Para viajes', 'Para publicidad'], c: 1 },
+        { levelId: 2, q: '¿Qué es una obra prioritaria?', o: ['La más cara', 'La más necesaria para el barrio', 'La más bonita', 'La que diga el juez'], c: 1 },
+        { levelId: 2, q: '¿Quién vigila el dinero?', o: ['Nadie', 'Comité de Vigilancia', 'El banco', 'Los turistas'], c: 1 },
+        { levelId: 3, q: '¿Qué es la fiscalización?', o: ['Regalar dinero', 'Controlar y revisar la gestión', 'Hacer propaganda', 'Vender terrenos'], c: 1 },
+        { levelId: 3, q: '¿Quién fiscaliza al alcalde?', o: ['Sus amigos', 'Los regidores y ciudadanos', 'Nadie', 'Solo el presidente'], c: 1 },
+        { levelId: 3, q: '¿Qué es la rendición de cuentas?', o: ['Contar cuentos', 'Explicar en qué se gastó el dinero', 'Pedir más préstamos', 'Cambiar de personal'], c: 1 },
+        { levelId: 3, q: '¿Dónde se denuncia una mala obra?', o: ['En la televisión', 'En la Contraloría o Municipio', 'En el parque', 'No se denuncia'], c: 1 },
+        { levelId: 3, q: '¿Qué es el acceso a la información?', o: ['Saber secretos', 'Derecho a pedir documentos públicos', 'Tener internet gratis', 'Leer el periódico'], c: 1 },
     ]
 };
 
@@ -479,7 +489,8 @@ function startLevel(levelId) {
     lives = currentUser.lives; // Usar las vidas actuales del usuario
 
     document.getElementById('levelTitle').textContent = `Nivel ${levelId + 1}: ${currentLevel.name}`;
-    document.getElementById('heartsDisplay').textContent = '❤️❤️❤️';
+    const hearts = '❤️'.repeat(lives) + '🖤'.repeat(3 - lives);
+    document.getElementById('heartsDisplay').textContent = hearts;
     document.getElementById('correctDisplay').textContent = '0';
 
     showQuestion();
@@ -578,15 +589,22 @@ async function finishLevel(success = correctAnswers >= 4) {
 
         showPage('rewardPage');
     } else {
-        // Solo establecer cooldown si no existe uno activo o si es el nivel actual
-        levelCooldowns[currentLevel.id] = Date.now() + (15 * 60 * 1000);
-        currentUser.lives = 0;
+        // Reducir una vida al usuario en Firebase si falla
+        currentUser.lives = Math.max(0, currentUser.lives - 1);
+        
+        // Solo establecer cooldown si se queda sin vidas
+        if (currentUser.lives <= 0) {
+            levelCooldowns[currentLevel.id] = Date.now() + (15 * 60 * 1000);
+        }
 
         await saveToFirebase();
         
-        // No detenemos los timers aquí para que el onSnapshot siga funcionando
         showPage('dashboardPage');
-        showError('❌ Perdiste. Intenta en 15 minutos.');
+        if (currentUser.lives <= 0) {
+            showError('❌ Te has quedado sin vidas. Intenta en 15 minutos.');
+        } else {
+            showError('❌ Has fallado el nivel. Te queda(n) ' + currentUser.lives + ' vida(s).');
+        }
     }
 }
 
