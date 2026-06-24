@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PREPOL RESET - Ciudadano Reset</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- LOGIN PAGE -->
+    <div id="loginPage" class="page active">
+        <div class="login-container">
+            <div class="login-box">
+                <div class="login-header">
+                    <div class="logo-icon">
+                        <img src="assets/images/logo.png" alt="Perro" style="width: 120px; height: auto; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2)) brightness(1.2) contrast(1.1); mix-blend-mode: screen; background: transparent;">
+                    </div>
+                    <h1 class="login-title">PREPOL  
+<span class="title-reset">RESET</span></h1>
+                    <p class="login-subtitle">Aprende Cívica Jugando</p>
+                </div>
+
+                <div id="loginForm" class="form-group">
+                    <div class="form-title">Ingresar</div>
+                    <input type="text" id="username" placeholder="Usuario" class="input-field" required>
+                    <input type="password" id="password" placeholder="Contraseña" class="input-field" required>
+                    <button onclick="loginUser()" class="btn-primary btn-full">Ingresar</button>
+                    <p class="toggle-form">¿No tienes cuenta? <a href="javascript:void(0)" onclick="toggleForm(event)">Registrarse</a></p>
+                </div>
+
+                <div id="registerForm" class="form-group" style="display: none;">
+                    <div class="form-title">Crear Cuenta</div>
+                    <input type="text" id="newUsername" placeholder="Nuevo Usuario" class="input-field" required>
+                    <input type="password" id="newPassword" placeholder="Contraseña (mín. 4 caracteres)" class="input-field" required>
+                    <input type="password" id="confirmPassword" placeholder="Confirmar Contraseña" class="input-field" required>
+                    <button onclick="registerUser()" class="btn-primary btn-full">Crear Cuenta</button>
+                    <p class="toggle-form">¿Ya tienes cuenta? <a href="javascript:void(0)" onclick="toggleForm(event)">Ingresar</a></p>
+                </div>
+
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
+                <div id="successMessage" class="success-message" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DASHBOARD PAGE -->
+    <div id="dashboardPage" class="page" style="display: none;">
+        <div class="dashboard-container">
+            <!-- SIDEBAR -->
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <img src="assets/images/logo.png" alt="Perro" style="width: 35px; height: auto; object-fit: contain; vertical-align: middle; margin-right: 8px; display: inline-block; background: transparent; filter: brightness(1.2) contrast(1.1); mix-blend-mode: screen;">
+                    <span style="color: white; font-weight: 900; display: inline-block;">PREPOL</span>
+                </div>
+                <nav class="sidebar-nav">
+                    <a href="javascript:void(0)" onclick="showPage('dashboardPage')" class="nav-item active">📚 Aprender</a>
+                    <a href="javascript:void(0)" onclick="showPage('leaderboardPage')" class="nav-item">🏆 Ranking</a>
+                    <a href="javascript:void(0)" onclick="showPage('perfilPage')" class="nav-item">👤 Perfil</a>
+                    <a href="javascript:void(0)" onclick="logout()" class="nav-item">🚪 Salir</a>
+                </nav>
+            </div>
+
+            <!-- MAIN CONTENT -->
+            <div class="main-content">
+                <!-- TOPBAR -->
+                <div class="topbar">
+                    <h1>Bienvenido, <span id="usernameDisplay">Usuario</span></h1>
+                    <div class="topbar-right">
+                        <div class="topbar-stat">
+                            <span class="icon">❤️</span>
+                            <span id="heartsTopbar">3</span>
+                        </div>
+                        <div id="timerTopbar" class="topbar-stat" style="display: none;">
+                            <span class="icon">⏱️</span>
+                            <span id="timerDisplay">15:00</span>
+                        </div>
+                        <div class="topbar-stat">
+                            <span class="icon">💰</span>
+                            <span id="solesDisplay">0</span> Soles
+                        </div>
+                        <div class="topbar-stat">
+                            <span class="icon">🏅</span>
+                            <span id="rankDisplay">Ciudadano</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MUNDOS Y NIVELES -->
+                <div class="mundos-container">
+                    <!-- MUNDO 1 -->
+                    <div class="mundo">
+                        <div class="mundo-header">
+                            <h2>🏘️ Mundo 1: Mi Barrio</h2>
+                            <p>Aprende sobre tu municipio</p>
+                        </div>
+                        <div class="niveles-grid">
+                            <div class="nivel-card" id="nivel-0" onclick="startLevel(0)">
+                                <div class="nivel-numero">1</div>
+                                <p>El Municipio</p>
+                                <div class="nivel-cooldown" id="cooldown-0" style="display: none;"></div>
+                            </div>
+                            <div class="nivel-card" id="nivel-1" onclick="startLevel(1)">
+                                <div class="nivel-numero">2</div>
+                                <p>La Junta Vecinal</p>
+                                <div class="nivel-cooldown" id="cooldown-1" style="display: none;"></div>
+                            </div>
+                            <div class="nivel-card" id="nivel-2" onclick="startLevel(2)">
+                                <div class="nivel-numero">3</div>
+                                <p>Presupuesto</p>
+                                <div class="nivel-cooldown" id="cooldown-2" style="display: none;"></div>
+                            </div>
+                            <div class="nivel-card" id="nivel-3" onclick="startLevel(3)">
+                                <div class="nivel-numero">4</div>
+                                <p>Fiscalización</p>
+                                <div class="nivel-cooldown" id="cooldown-3" style="display: none;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MUNDO 2 -->
+                    <div class="mundo">
+                        <div class="mundo-header">
+                            <h2>🏢 Mundo 2: Mi Distrito</h2>
+                            <p>Descubre las obras públicas</p>
+                        </div>
+                        <div class="niveles-grid">
+                            <div class="nivel-card" id="nivel-4" onclick="startLevel(4)">
+                                <div class="nivel-numero">5</div>
+                                <p>Obras Públicas</p>
+                                <div class="nivel-cooldown" id="cooldown-4" style="display: none;"></div>
+                            </div>
+                            <div class="nivel-card" id="nivel-5" onclick="startLevel(5)">
+                                <div class="nivel-numero">6</div>
+                                <p>Denuncia Fácil</p>
+                                <div class="nivel-cooldown" id="cooldown-5" style="display: none;"></div>
+                            </div>
+                            <div class="nivel-card" id="nivel-6" onclick="startLevel(6)">
+                                <div class="nivel-numero">7</div>
+                                <p>El Regidor</p>
+                                <div class="nivel-cooldown" id="cooldown-6" style="display: none;"></div>
+                            </div>
+                            <div class="nivel-card" id="nivel-7" onclick="startLevel(7)">
+                                <div class="nivel-numero">8</div>
+                                <p>Participación</p>
+                                <div class="nivel-cooldown" id="cooldown-7" style="display: none;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MUNDO 3 -->
+                    <div class="mundo">
+                        <div class="mundo-header">
+                            <h2>🏛️ Mundo 3: Mi Región</h2>
+                            <p>Entiende el gobierno regional</p>
+                        </div>
+                        <div class="niveles-grid">
+                            <div class="nivel-card" id="nivel-8" onclick="startLevel(8)">
+                                <div class="nivel-numero">9</div>
+                                <p>El GORE</p>
+                                <div class="nivel-cooldown" id="cooldown-8" style="display: none;"></div>
+                            </div>
+                            <div class="nivel-card" id="nivel-9" onclick="startLevel(9)">
+                                <div class="nivel-numero">10</div>
+                                <p>Canon Minero</p>
+                                <div class="nivel-cooldown" id="cooldown-9" style="display: none;"></div>
+                            </div>
+                            <div class="nivel-card" id="nivel-10" onclick="startLevel(10)">
+                                <div class="nivel-numero">11</div>
+                                <p>Leyes Regionales</p>
+                                <div class="nivel-cooldown" id="cooldown-10" style="display: none;"></div>
+                            </div>
+                            <div class="nivel-card" id="nivel-11" onclick="startLevel(11)">
+                                <div class="nivel-numero">12</div>
+                                <p>Presupuesto Regional</p>
+                                <div class="nivel-cooldown" id="cooldown-11" style="display: none;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MUNDO 4 -->
+                    <div class="mundo">
+                        <div class="mundo-header">
+                            <h2>🇵🇪 Mundo 4: Mi País</h2>
+                            <p>Aprende sobre el Perú</p>
+                        </div>
+                        <div class="niveles-grid">
+                            <div class="nivel-card" id="nivel-12" onclick="startLevel(12)">
+                                <div class="nivel-numero">13</div>
+                                <p>El Congreso</p>
+                                <div class="nivel-cooldown" id="cooldown-12" style="display: none;"></div>
+                            </div>
+                            <div class="nivel-card" id="nivel-13" onclick="startLevel(13)">
+                                <div class="nivel-numero">14</div>
+                                <p>Las Leyes</p>
+                                <div class="nivel-cooldown" id="cooldown-13" style="display: none;"></div>
+                            </div>
+                            <div class="nivel-card" id="nivel-14" onclick="startLevel(14)">
+                                <div class="nivel-numero">15</div>
+                                <p>Voto Informado</p>
+                                <div class="nivel-cooldown" id="cooldown-14" style="display: none;"></div>
+                            </div>
+                            <div class="nivel-card" id="nivel-15" onclick="startLevel(15)">
+                                <div class="nivel-numero">16</div>
+                                <p>Ciudadanía</p>
+                                <div class="nivel-cooldown" id="cooldown-15" style="display: none;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- QUIZ PAGE -->
+    <div id="quizPage" class="page" style="display: none;">
+        <div class="quiz-container">
+            <div class="quiz-header">
+                <button onclick="backToDashboard()" class="btn-back">← Volver</button>
+                <h2 id="levelTitle">Nivel 1</h2>
+                <div class="quiz-stats">
+                    <span id="heartsDisplay">❤️ ❤️ ❤️</span>
+                    <span>✅ <span id="correctDisplay">0</span>/5</span>
+                </div>
+            </div>
+
+            <div class="quiz-content">
+                <div class="question-card">
+                    <h3 id="questionText"></h3>
+                    <div class="options" id="optionsContainer"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- REWARD PAGE -->
+    <div id="rewardPage" class="page" style="display: none;">
+        <div class="reward-container">
+            <div class="reward-box">
+                <div class="reward-animation">
+                    <div class="confetti"></div>
+                    <div class="confetti"></div>
+                    <div class="confetti"></div>
+                    <div class="confetti"></div>
+                    <div class="confetti"></div>
+                </div>
+                <h2 class="reward-title">¡FELICIDADES! 🎉</h2>
+                <p class="reward-level" id="rewardLevelText">Completaste el Nivel 1</p>
+                
+                <div class="reward-stats">
+                    <div class="reward-stat">
+                        <span class="reward-icon">💰</span>
+                        <div>
+                            <p class="reward-label">Soles Ganados</p>
+                            <p class="reward-value" id="rewardSoles">+40</p>
+                        </div>
+                    </div>
+                    <div class="reward-stat">
+                        <span class="reward-icon">🏅</span>
+                        <div>
+                            <p class="reward-label">Tu Rango</p>
+                            <p class="reward-value" id="rewardRank">Ciudadano</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="reward-total">
+                    <p>Total: <strong id="rewardTotal">0</strong> Soles</p>
+                </div>
+
+                <button onclick="backToDashboard()" class="btn-primary btn-full">Continuar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LEADERBOARD PAGE -->
+    <div id="leaderboardPage" class="page" style="display: none;">
+        <div class="leaderboard-container">
+            <button onclick="showPage('dashboardPage')" class="btn-back">← Volver</button>
+            <h1>🏆 Ranking Global</h1>
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>Posición</th>
+                        <th>Usuario</th>
+                        <th>Soles</th>
+                        <th>Rango</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboardBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- PERFIL PAGE -->
+    <div id="perfilPage" class="page" style="display: none;">
+        <div class="perfil-container">
+            <button onclick="showPage('dashboardPage')" class="btn-back">← Volver</button>
+            <h1>👤 Mi Perfil</h1>
+            <div class="perfil-card">
+                <h2 id="perfilUsername"></h2>
+                <div class="perfil-stats">
+                    <div class="stat">
+                        <span>Soles Cívicos</span>
+                        <strong id="perfilSoles">0</strong>
+                    </div>
+                    <div class="stat">
+                        <span>Rango</span>
+                        <strong id="perfilRank">Ciudadano</strong>
+                    </div>
+                    <div class="stat">
+                        <span>Niveles Completados</span>
+                        <strong id="perfilLevels">0</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FIREBASE SDK - AL FINAL ANTES DE </body> -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+
+    <!-- CONFIGURACIÓN Y APP -->
+    <script src="js/app.js"></script>
+
+</body>
+</html>
