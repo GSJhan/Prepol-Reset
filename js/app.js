@@ -180,7 +180,8 @@ async function loginUser() {
 async function logout() {
     currentUser = null;
     if (cooldownUpdater) clearInterval(cooldownUpdater);
-    if (firebaseSyncTimer) clearInterval(firebaseSyncTimer);
+    if (typeof firebaseSyncTimer === 'function') firebaseSyncTimer(); // Detener onSnapshot
+    else if (firebaseSyncTimer) clearInterval(firebaseSyncTimer);
 
     localStorage.removeItem('prepol_userId');
     localStorage.removeItem('prepol_username');
@@ -237,22 +238,28 @@ async function saveToFirebase() {
 function startFirebaseSync() {
     if (firebaseSyncTimer) clearInterval(firebaseSyncTimer);
 
-    firebaseSyncTimer = setInterval(async () => {
-        if (!currentUser) return;
-
-        try {
-            const doc = await db.collection('users').doc(currentUser.uid).get();
-            if (doc.exists) {
-                const data = doc.data();
-                currentUser.lives = data.lives || 3;
-                levelCooldowns = data.levelCooldowns || {};
-                updateUI();
-                updateCooldownDisplays();
+    // Usar onSnapshot para sincronización en tiempo real sin polling manual
+    firebaseSyncTimer = db.collection('users').doc(currentUser.uid).onSnapshot((doc) => {
+        if (doc.exists) {
+            const data = doc.data();
+            
+            // Sincronizar vidas y cooldowns
+            currentUser.lives = (data.lives !== undefined) ? data.lives : 3;
+            levelCooldowns = data.levelCooldowns || {};
+            
+            // Actualizar UI inmediatamente
+            updateUI();
+            updateCooldownDisplays();
+            
+            // Si el usuario está en el quiz y se queda sin vidas externamente, sacarlo
+            const quizPage = document.getElementById('quizPage');
+            if (quizPage && quizPage.style.display === 'block' && currentUser.lives <= 0) {
+                finishLevel(false);
             }
-        } catch (error) {
-            console.error('Error sincronizando:', error);
         }
-    }, 1000);
+    }, (error) => {
+        console.error('Error en onSnapshot:', error);
+    });
 }
 
 // ========== UI ==========
@@ -321,20 +328,35 @@ function updateCooldownDisplays() {
             if (!closestTime || remaining < closestTime) closestTime = remaining;
         } else {
             cooldownDiv.style.display = 'none';
-            card.classList.remove('locked');
+            // Solo remover locked si el usuario tiene vidas
+            if (currentUser && currentUser.lives > 0) {
+                card.classList.remove('locked');
+            } else {
+                card.classList.add('locked');
+            }
         }
     }
 
     const timerTopbar = document.getElementById('timerTopbar');
     const heartsTopbar = document.getElementById('heartsTopbar');
 
-    if (hasActiveCooldown && closestTime) {
+    // Lógica del temporizador global basada en vidas o cooldowns
+    if (currentUser && currentUser.lives <= 0) {
+        // Si no hay vidas, mostrar temporizador basado en el cooldown más cercano
         timerTopbar.style.display = 'flex';
         heartsTopbar.textContent = '0';
-        updateTimerDisplay(closestTime);
+        if (closestTime) {
+            updateTimerDisplay(closestTime);
+        } else {
+            const display = document.getElementById('timerDisplay');
+            if (display) display.textContent = "--:--";
+        }
     } else {
+        // Si hay vidas, ocultar temporizador global a menos que haya un nivel específico bloqueado
+        // Pero el requerimiento dice que si tiene 0 vidas no aparece el contador o no se conecta
+        // Vamos a asegurar que si lives > 0, el contador desaparezca y se vean las vidas
         timerTopbar.style.display = 'none';
-        heartsTopbar.textContent = currentUser.lives || 3;
+        heartsTopbar.textContent = currentUser.lives;
     }
 }
 
@@ -401,6 +423,11 @@ function showSuccess(message) {
 
 // ========== GAME ==========
 function startLevel(levelId) {
+    if (currentUser.lives <= 0) {
+        showError('❌ No tienes vidas. Espera a que el temporizador termine.');
+        return;
+    }
+
     if (levelCooldowns[levelId] && levelCooldowns[levelId] > Date.now()) {
         const minutos = Math.ceil((levelCooldowns[levelId] - Date.now()) / 60000);
         showError('⏱️ Intenta en ' + minutos + ' minutos');
@@ -415,7 +442,7 @@ function startLevel(levelId) {
     currentLevel = gameData.levels[levelId];
     currentQuestionIndex = 0;
     correctAnswers = 0;
-    lives = 3;
+    lives = currentUser.lives; // Usar las vidas actuales del usuario
 
     document.getElementById('levelTitle').textContent = `Nivel ${levelId + 1}: ${currentLevel.name}`;
     document.getElementById('heartsDisplay').textContent = '❤️❤️❤️';
@@ -488,10 +515,11 @@ async function finishLevel(success = correctAnswers >= 4) {
             currentUser.completedLevels.push(currentLevel.id);
         }
         delete levelCooldowns[currentLevel.id];
+        // No resetear vidas a 3 automáticamente si ya tenía más, pero el juego parece basarse en 3
         currentUser.lives = 3;
 
         await saveToFirebase();
-        await loadUserDataFromFirebase();
+        // No necesitamos llamar a loadUserDataFromFirebase() porque onSnapshot lo hará
 
         document.getElementById('rewardLevelText').textContent = `Completaste: ${currentLevel.name}`;
         document.getElementById('rewardSoles').textContent = `+${currentLevel.soles}`;
@@ -500,15 +528,13 @@ async function finishLevel(success = correctAnswers >= 4) {
 
         showPage('rewardPage');
     } else {
+        // Solo establecer cooldown si no existe uno activo o si es el nivel actual
         levelCooldowns[currentLevel.id] = Date.now() + (15 * 60 * 1000);
         currentUser.lives = 0;
 
         await saveToFirebase();
-
-        if (cooldownUpdater) clearInterval(cooldownUpdater);
-        if (firebaseSyncTimer) clearInterval(firebaseSyncTimer);
-
-        await loadUserDataFromFirebase();
+        
+        // No detenemos los timers aquí para que el onSnapshot siga funcionando
         showPage('dashboardPage');
         showError('❌ Perdiste. Intenta en 15 minutos.');
     }
