@@ -108,7 +108,7 @@ async function registerUser() {
 
         const docRef = await db.collection('users').add({
             username: username,
-            password: btoa(password),
+            password: password, // Guardar texto plano como pidió el usuario
             soles: 100,
             rank: 'Ciudadano',
             completedLevels: [],
@@ -154,7 +154,23 @@ async function loginUser() {
         const userDoc = snapshot.docs[0];
         const userData = userDoc.data();
 
-        if (atob(userData.password) !== password) {
+        // Soporte para contraseñas antiguas (Base64) y nuevas (texto plano)
+        let savedPassword = userData.password;
+        let isCorrect = false;
+
+        if (savedPassword === password) {
+            isCorrect = true;
+        } else {
+            try {
+                if (atob(savedPassword) === password) {
+                    isCorrect = true;
+                }
+            } catch (e) {
+                // No era Base64
+            }
+        }
+
+        if (!isCorrect) {
             showError('Usuario o contraseña incorrectos');
             return;
         }
@@ -249,6 +265,7 @@ function startFirebaseSync() {
             
             // Actualizar UI inmediatamente
             updateUI();
+            updateLevelStates();
             updateCooldownDisplays();
             
             // Si el usuario está en el quiz y se queda sin vidas externamente, sacarlo
@@ -292,16 +309,23 @@ function updateLevelStates() {
         const card = document.getElementById(`nivel-${i}`);
         if (!card) continue;
 
-        if (levelCooldowns[i] && levelCooldowns[i] > Date.now()) {
+        // Reiniciar clases primero
+        card.classList.remove('locked', 'completed');
+
+        // Lógica de bloqueo
+        if (currentUser.lives <= 0) {
+            card.classList.add('locked');
+        } else if (levelCooldowns[i] && levelCooldowns[i] > Date.now()) {
             card.classList.add('locked');
         } else if (i === 0) {
-            card.classList.remove('locked');
+            // Nivel 1 siempre disponible si hay vidas
         } else if (currentUser.completedLevels.includes(i - 1)) {
-            card.classList.remove('locked');
+            // Nivel disponible si el anterior está completado
         } else {
             card.classList.add('locked');
         }
 
+        // Marca de completado
         if (currentUser.completedLevels.includes(i)) {
             card.classList.add('completed');
         }
