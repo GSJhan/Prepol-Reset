@@ -72,6 +72,9 @@ async function initApp() {
     const userId = localStorage.getItem('prepol_userId');
     const username = localStorage.getItem('prepol_username');
     
+    // Ocultar todas las páginas inicialmente para evitar parpadeo
+    document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+    
     if (userId && username) {
         currentUser = { uid: userId, username: username };
         await loadUserDataFromFirebase();
@@ -301,8 +304,13 @@ function startFirebaseSync() {
 
 // ========== UI ==========
 function showPage(pageId) {
-    document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-    document.getElementById(pageId).style.display = 'block';
+    document.querySelectorAll('.page').forEach(p => {
+        p.style.display = 'none';
+        p.classList.remove('active');
+    });
+    const page = document.getElementById(pageId);
+    page.style.display = 'block';
+    page.classList.add('active');
 
     if (pageId === 'leaderboardPage') {
         loadLeaderboard();
