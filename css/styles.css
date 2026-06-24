@@ -32,15 +32,6 @@ body {
     min-height: 100vh;
 }
 
-/* ========== PAGE VISIBILITY ========== */
-.page {
-    display: none !important;
-}
-
-.page.active {
-    display: block !important;
-}
-
 /* ========== LOGIN PAGE ========== */
 .login-container {
     display: flex;
@@ -49,6 +40,22 @@ body {
     min-height: 100vh;
     padding: 20px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    background-image: url('../assets/images/registro.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    position: relative;
+}
+
+.login-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.7) 0%, rgba(118, 75, 162, 0.7) 50%, rgba(240, 147, 251, 0.7) 100%);
+    z-index: 1;
 }
 
 .login-box {
@@ -56,13 +63,15 @@ body {
     backdrop-filter: blur(20px);
     border-radius: 40px;
     padding: 60px 50px;
-    max-width: 450px;
+    max-width: 500px;
     width: 100%;
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3);
     border: 2px solid rgba(255, 255, 255, 0.5);
     display: flex;
     flex-direction: column;
-    min-height: 650px;
+    min-height: 700px;
+    position: relative;
+    z-index: 2;
 }
 
 .login-header {
@@ -230,11 +239,15 @@ body {
 .dashboard-container {
     display: flex;
     min-height: 100vh;
+    background-image: url('../assets/images/fondo.png');
+    background-size: cover;
+    background-position: left center;
+    background-attachment: fixed;
 }
 
 .sidebar {
     width: 250px;
-    background: rgba(0, 0, 0, 0);
+    background: rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(10px);
     padding: 30px 20px;
     border-right: 1px solid rgba(255, 255, 255, 0.1);
@@ -286,30 +299,7 @@ body {
     flex: 1;
     padding: 30px;
     overflow-y: auto;
-    background-image: url('../assets/images/fondo.png');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    background-repeat: no-repeat;
-    image-rendering: -webkit-optimize-contrast; /* Mejora la nitidez en algunos navegadores */
-    position: relative;
-}
-
-.main-content::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.35);
-    pointer-events: none;
-    z-index: 0;
-}
-
-.mundos-container {
-    position: relative;
-    z-index: 1;
+    background: rgba(0, 0, 0, 0.2);
 }
 
 .topbar {
@@ -322,8 +312,6 @@ body {
     border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(10px);
-    position: relative;
-    z-index: 1;
 }
 
 .topbar h1 {
@@ -375,8 +363,6 @@ body {
     border-radius: 20px;
     padding: 30px;
     backdrop-filter: blur(10px);
-    position: relative;
-    z-index: 1;
 }
 
 .mundo-header {
@@ -456,7 +442,7 @@ body {
 }
 
 .nivel-numero {
-    font-size: 2rem;
+    font-size: 3rem;
     font-weight: 900;
     margin-bottom: 10px;
     font-family: 'Montserrat', sans-serif;
@@ -501,6 +487,28 @@ body {
     max-width: 800px;
     margin: 0 auto;
     padding: 30px;
+    min-height: 100vh;
+    background-image: url('../assets/images/preguntas.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    position: relative;
+}
+
+.quiz-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 0;
+}
+
+.quiz-container > * {
+    position: relative;
+    z-index: 1;
 }
 
 .quiz-header {
@@ -508,12 +516,13 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 30px;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.95);
     padding: 20px;
     border-radius: 15px;
     border: 1px solid rgba(255, 255, 255, 0.2);
     flex-wrap: wrap;
     gap: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
 .btn-back {
@@ -542,12 +551,13 @@ body {
 }
 
 .question-card {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid rgba(102, 126, 234, 0.3);
     border-radius: 20px;
     padding: 35px;
     margin-bottom: 20px;
     backdrop-filter: blur(10px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
 }
 
 .question-card h3 {
@@ -557,6 +567,7 @@ body {
     font-family: 'Montserrat', sans-serif;
     font-weight: 800;
     letter-spacing: 0.3px;
+    color: #333;
 }
 
 .options {
@@ -566,9 +577,9 @@ body {
 }
 
 .option-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    color: var(--text-light);
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid rgba(102, 126, 234, 0.3);
+    color: #333;
     padding: 18px 22px;
     border-radius: 15px;
     cursor: pointer;
@@ -577,6 +588,7 @@ body {
     text-align: left;
     font-family: 'Poppins', sans-serif;
     letter-spacing: 0.3px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 .option-btn:hover {
@@ -589,11 +601,13 @@ body {
 .option-btn.correct {
     background: rgba(76, 175, 80, 0.3);
     border-color: var(--success);
+    color: #2d5f2d;
 }
 
 .option-btn.incorrect {
     background: rgba(245, 87, 108, 0.3);
     border-color: var(--danger);
+    color: #8b2f2f;
 }
 
 /* ========== REWARD PAGE ========== */
@@ -727,36 +741,29 @@ body {
     align-items: center;
     gap: 15px;
     box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-    min-width: 0; /* Evitar desbordamiento */
-}
-
-.reward-value {
-    color: white;
-    font-size: 1.2rem; /* Reducido para que quepan rangos largos */
-    font-weight: 900;
-    font-family: 'Montserrat', sans-serif;
-    letter-spacing: -0.5px;
-    white-space: normal; /* Permitir que el texto baje si es necesario */
-    word-break: break-word;
-    max-width: 100%;
-    line-height: 1.2;
 }
 
 .reward-icon {
     font-size: 2.5rem;
-    flex-shrink: 0; /* Evitar que el emoji se aplaste */
 }
 
 .reward-stat div {
     text-align: left;
-    min-width: 0; /* Importante para flexbox y desborde */
 }
 
 .reward-label {
     color: rgba(255, 255, 255, 0.8);
-    font-size: 0.8rem;
-    margin-bottom: 3px;
+    font-size: 0.9rem;
+    margin-bottom: 5px;
     font-weight: 600;
+}
+
+.reward-value {
+    color: white;
+    font-size: 1.8rem;
+    font-weight: 900;
+    font-family: 'Montserrat', sans-serif;
+    letter-spacing: -0.5px;
 }
 
 .reward-total {
@@ -788,28 +795,39 @@ body {
     max-width: 800px;
     margin: 0 auto;
     padding: 30px;
+    min-height: 100vh;
+    background: rgba(0, 0, 0, 0.2);
 }
 
 .leaderboard-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
 .leaderboard-table th {
-    background: rgba(255, 255, 255, 0.1);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
     padding: 18px;
     text-align: left;
     font-weight: 700;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
     font-family: 'Montserrat', sans-serif;
     letter-spacing: 0.5px;
 }
 
 .leaderboard-table td {
     padding: 18px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     font-weight: 600;
+    color: #333;
+}
+
+.leaderboard-table tbody tr:hover {
+    background: rgba(102, 126, 234, 0.05);
 }
 
 /* ========== PERFIL PAGE ========== */
@@ -817,15 +835,18 @@ body {
     max-width: 600px;
     margin: 0 auto;
     padding: 30px;
+    min-height: 100vh;
+    background: rgba(0, 0, 0, 0.2);
 }
 
 .perfil-card {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid rgba(102, 126, 234, 0.3);
     border-radius: 20px;
     padding: 35px;
     margin-top: 20px;
     backdrop-filter: blur(10px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
 .perfil-card h2 {
@@ -833,6 +854,7 @@ body {
     font-weight: 900;
     font-size: 1.8rem;
     letter-spacing: 0.5px;
+    color: #333;
 }
 
 .perfil-stats {
@@ -843,42 +865,35 @@ body {
 }
 
 .stat {
-    background: rgba(255, 255, 255, 0.12);
-    padding: 25px 20px;
-    border-radius: 18px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px;
+    border-radius: 15px;
     text-align: center;
-    border: 2px solid rgba(255, 255, 255, 0.25);
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s;
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
 }
 
 .stat:hover {
-    background: rgba(255, 255, 255, 0.18);
-    transform: translateY(-8px);
-    border-color: rgba(240, 147, 251, 0.5);
-    box-shadow: 0 12px 40px rgba(240, 147, 251, 0.2);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
 }
 
 .stat span {
     display: block;
-    opacity: 0.85;
-    margin-bottom: 12px;
+    opacity: 0.9;
+    margin-bottom: 10px;
     font-weight: 600;
-    font-size: 0.95rem;
-    letter-spacing: 0.3px;
+    color: white;
 }
 
 .stat strong {
-    font-size: 2rem;
+    font-size: 1.8rem;
     display: block;
     font-family: 'Montserrat', sans-serif;
     font-weight: 900;
     letter-spacing: -0.5px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: white;
 }
 
 /* ========== RESPONSIVE ========== */
@@ -894,6 +909,7 @@ body {
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         padding: 15px;
         position: relative;
+        background: rgba(0, 0, 0, 0.5);
     }
 
     .sidebar-nav {
@@ -930,6 +946,7 @@ body {
     .login-box {
         padding: 40px 25px;
         min-height: auto;
+        max-width: 450px;
     }
 
     .login-title {
@@ -955,6 +972,10 @@ body {
     .quiz-header {
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    .quiz-container {
+        padding: 15px;
     }
 }
 
@@ -986,6 +1007,7 @@ body {
     .login-box {
         min-height: auto;
         padding: 30px 20px;
+        max-width: 95vw;
     }
 
     .reward-box {
@@ -994,10 +1016,24 @@ body {
 
     .quiz-container {
         padding: 15px;
+        background-size: cover;
     }
 
     .topbar-stat {
         font-size: 0.9rem;
         padding: 10px 14px;
+    }
+
+    .question-card {
+        padding: 20px;
+    }
+
+    .question-card h3 {
+        font-size: 1.1rem;
+    }
+
+    .option-btn {
+        padding: 14px 16px;
+        font-size: 0.9rem;
     }
 }
