@@ -486,12 +486,21 @@ function startLevel(levelId) {
     currentLevel = gameData.levels[levelId];
     currentQuestionIndex = 0;
     correctAnswers = 0;
-    lives = currentUser.lives; // Usar las vidas actuales del usuario
+    
+    // Sincronizar vidas locales con las globales del usuario antes de empezar
+    lives = currentUser.lives;
 
     document.getElementById('levelTitle').textContent = `Nivel ${levelId + 1}: ${currentLevel.name}`;
     const hearts = '❤️'.repeat(lives) + '🖤'.repeat(3 - lives);
     document.getElementById('heartsDisplay').textContent = hearts;
     document.getElementById('correctDisplay').textContent = '0';
+
+    // Verificar si hay preguntas para este nivel
+    const quizzes = gameData.quizzes.filter(q => q.levelId === currentLevel.id);
+    if (quizzes.length === 0) {
+        showError('Este nivel aún no tiene preguntas disponibles.');
+        return;
+    }
 
     showQuestion();
     showPage('quizPage');
@@ -516,10 +525,12 @@ function showQuestion() {
         originalIndex: index
     }));
 
-    // Aleatorizar las opciones
+    // Aleatorizar las opciones (Fisher-Yates Shuffle)
     for (let i = optionsWithIndex.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [optionsWithIndex[i], optionsWithIndex[j]] = [optionsWithIndex[j], optionsWithIndex[i]];
+        const temp = optionsWithIndex[i];
+        optionsWithIndex[i] = optionsWithIndex[j];
+        optionsWithIndex[j] = temp;
     }
 
     // Encontrar el índice correcto después de la aleatorización
@@ -576,7 +587,7 @@ async function finishLevel(success = correctAnswers >= 4) {
             currentUser.completedLevels.push(currentLevel.id);
         }
         delete levelCooldowns[currentLevel.id];
-        // No resetear vidas a 3 automáticamente si ya tenía más, pero el juego parece basarse en 3
+        // Si ganó, nos aseguramos de que tenga 3 vidas para seguir jugando
         currentUser.lives = 3;
 
         await saveToFirebase();
