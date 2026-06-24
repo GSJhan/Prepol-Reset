@@ -37,8 +37,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 100vh;
-    padding: 20px;
+    min-height: 200vh;
+    padding: 40px;
     background-image: url('../assets/images/registro.png');
     background-size: cover;
     background-position: center;
